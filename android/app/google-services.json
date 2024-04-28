@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "889471056206",
+    "firebase_url": "https://evolve-6a292-default-rtdb.firebaseio.com",
+    "project_id": "evolve-6a292",
+    "storage_bucket": "evolve-6a292.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:889471056206:android:804e862797cf6b03ec461f",
+        "android_client_info": {
+          "package_name": "com.example.evolve"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3SMiu_CaERllktjKyTIuBz2ZJXNEQlZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
