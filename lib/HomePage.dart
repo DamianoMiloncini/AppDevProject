@@ -1,4 +1,3 @@
-// import 'dart:html';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +5,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'firebase_options.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,9 +16,21 @@ Future<void> main() async {
   );
   runApp(MyApp());
 }
-
-class MyApp extends StatelessWidget {
+//need a stful widget for the app theme
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+
+  static _MyAppState of(BuildContext context) =>
+      context.findAncestorStateOfType<_MyAppState>()!;
+
+}
+
+class _MyAppState extends State<MyApp> {
+  //variable to set a state field for the theme
+  ThemeMode _themeMode = ThemeMode.system;
 
   @override
   Widget build(BuildContext context) {
@@ -31,12 +44,20 @@ class MyApp extends StatelessWidget {
             titleTextStyle: TextStyle(color: Colors.white)
         ),
         drawerTheme: DrawerThemeData(backgroundColor: Colors.blueGrey,),
-
       ),
       home: InitialPage(),
+      darkTheme: ThemeData.dark(), //set what dark theme is
+      themeMode: _themeMode, //use the variable so that I can change its state
     );
   }
+  //call this method in the buttons to change the theme from light to dark and vice versa
+  void changeTheme(ThemeMode themeMode) {
+    setState(() {
+      _themeMode = themeMode;
+    });
+  }
 }
+
 
 class InitialPage extends StatefulWidget {
   const InitialPage({super.key});
@@ -106,8 +127,9 @@ class _InitialPageState extends State<InitialPage> {
       ),
       drawer: Drawer(
         child: ListView(
-          //padding: ,
+          padding: EdgeInsets.zero,
           children: [
+            //TODO: You can change to your liking honestly
             const UserAccountsDrawerHeader(
                 decoration: BoxDecoration(
                     color: Colors.white38
@@ -120,7 +142,53 @@ class _InitialPageState extends State<InitialPage> {
                   backgroundColor: Colors.blueAccent,
                   foregroundColor: Colors.lightGreen,
                   child: Text('M',style: TextStyle(fontSize: 30),),
-                ) )
+                ),
+            ),
+            //account tile
+            ListTile(
+              //something is bothering me with the way this is styled but whateva
+              leading: const Icon(Icons.account_circle_outlined,size: 30,),
+              title: const Text('Account Settings'),
+              trailing: const Icon(Icons.arrow_forward),
+              onTap: () {
+                //push to User settings page
+              },
+            ),
+            SizedBox(height: 10,),
+            Row(
+              children: [
+                //light theme button
+                ElevatedButton(onPressed: () {
+                  MyApp.of(context).changeTheme(ThemeMode.light);
+                  Navigator.pop(context); //to close the drawer after the user clicks the button
+                } ,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    //little sun
+                    Icon(Icons.wb_sunny_outlined),
+                    SizedBox(width: 5,),
+                    Text('Light Mode')
+                  ],
+                ),
+                ),
+                SizedBox(width: 5,),
+                ElevatedButton(onPressed: () {
+                  MyApp.of(context).changeTheme(ThemeMode.dark);
+                  Navigator.pop(context); //to close the drawer after the user clicks the button
+                },
+                  child: Row(
+                  children: [
+                    //little moon
+                    Icon(Icons.dark_mode_outlined),
+                    SizedBox(width: 5,),
+                    Text('Dark Mode')
+                  ],
+                ),
+                ),
+
+              ],
+            )
           ],
         ),
       ),
@@ -152,6 +220,7 @@ class _HomePageState extends State<HomePage> {
             Row(
               children: [
                 Text('Hello,',style: TextStyle(fontSize: 35),),
+                //TODO: Fetch the actual username logged in !
                 Text('Micka',style: TextStyle(fontSize: 35,color: Colors.deepPurpleAccent,fontWeight: FontWeight.w500),),
               ],
             ),
@@ -170,18 +239,114 @@ class _HomePageState extends State<HomePage> {
                     return CircularProgressIndicator(); //ofc i had to use it
                   }
                   //ListView of all the posts
-                  return Expanded(child: ListView(
+                  return Expanded(
+                    child: ListView(
                     shrinkWrap: true,
                     children: snapshot.data!.docs
                         .map((DocumentSnapshot document) {
                       Map<String, dynamic> data =
                       document.data()! as Map<String, dynamic>;
+                      //format the date & time displayed for each post
+                      Timestamp timestamp = data['timestamp'];
+                      DateTime date = timestamp.toDate();
                       //GOOD TO KNOW: if one of your documents doesnt have the field that you are trying to read, you will get an error
                       //TODO: Style it like the mock up :)
-                      return ListTile(
-                        title: Text(data['title']),
-                        subtitle: Text(data['description']),
+                      // Wrap the Column with SingleChildScrollView to make it scrollable
+                      return SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              child: ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                ),
+                                child: Container(
+                                  padding: EdgeInsets.all(10),
+                                  width: 300,
+                                  height: 150,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // Have the user avatar & username
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 50,
+                                            height: 50,
+                                            clipBehavior: Clip.antiAlias,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Image.network(
+                                              'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlcnxlbnwwfHwwfHx8MA%3D%3D',
+                                              fit: BoxFit.fitWidth,
+                                            ),
+                                          ),
+                                          SizedBox(width: 15,),
+                                          // TODO: fetch the actual username from firebase and add it here amigo
+                                            Text('Username'),
+                                          SizedBox(width: 15,),
+
+                                          Text('${date.year}-${date.month}-${date.day}  ${date.hour}:${date.minute} ')
+                                        ],
+                                      ),
+                                      SizedBox(height: 15,),
+                                      //workout description
+                                      Expanded(child: Text(data['description']),), //in case the user enters a long ass description
+                                      //SizedBox(height: 10,),
+                                      //little divider to have the icons underneath !
+                                      Divider(
+                                        height: 2,
+                                        thickness: 1,
+                                      ),
+                                      //row of icons
+                                      Expanded(child:
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          TextButton(onPressed: (){
+
+                                          }, child: Icon(Icons.message),
+                                          ), // should i add the number of comments and likes ?
+                                          TextButton(onPressed: (){
+
+                                          }, child: Icon(Icons.favorite_border),
+                                          ),
+                                          TextButton(onPressed: (){
+
+                                          }, child: Icon(Icons.bookmark_add_outlined),
+                                          ),
+                                          TextButton(onPressed: (){
+
+                                          }, child: Icon(Icons.share),
+                                          ),
+
+                                        ],
+                                      ))
+
+                                      // Text(
+                                      //   data['title'],
+                                      //   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                                      // ),
+                                      // SizedBox(height: 5),
+                                      // Text(data['description']),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Add other ElevatedButton widgets wrapped with Padding here
+                          ],
+                        ),
                       );
+
+
+
+
                     }).toList(),
                   ),);
                 }
