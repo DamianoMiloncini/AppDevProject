@@ -480,54 +480,99 @@ class _PostState extends State<Post> {
                   var weight = '';
                   var reps = '';
                   return ListTile(
-                    title: Text('${exercise['name']}'),
+                    title: Text(
+                        '${exercise['name']} (${exercise['muscle']})',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500
+                      ),
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Muscle: ${exercise['muscle']}'),
                         SizedBox(height: 10),
                         Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Expanded(child: Text('Set')),
-                            Expanded(child: Text('LBS')),
-                            Expanded(child: Text('Reps')),
+                            Text('Set'),
+                            Text('LBS'),
+                            Text('Reps'),
                           ],
                         ),
                         SizedBox(height: 10),
                         ListView.builder(
                           shrinkWrap: true,
-                          itemCount: selectedExercises[index]['sets'].length + 1, // Add 1 for the "Add Set" button
+                          physics: NeverScrollableScrollPhysics(), // Disable scrolling for nested ListView
+                          itemCount: selectedExercises[index]['sets'].length + 1,
                           itemBuilder: (context, setIndex) {
                             if (setIndex == selectedExercises[index]['sets'].length) {
-                              // Display "Add Set" button at the end
+                              // This is so that the add set button is always at the bottom of each exercise
                               return ElevatedButton(
                                 onPressed: () {
-                                  visualSetNumber++;
                                   setState(() {
                                     selectedExercises[index]['sets'].add({'set': setNumber.toString(), 'lbs': '', 'reps': ''});
-                                    message = selectedExercises.toString(); // in case we need to display what is in the map
+                                    message = selectedExercises.toString();
                                   });
                                 },
-                                child: Text('Add Set'),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add, color: Colors.white,),
+                                    Text(
+                                        'Add Set',
+                                      style: TextStyle(
+                                        color: Colors.white
+                                      ),
+                                    ),
+                                  ],
+                                )
                               );
                             } else {
                               final set = selectedExercises[index]['sets'][setIndex];
                               return Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Expanded(child: Text('${set['set']}')),
-                                  Expanded(child: TextFormField(onChanged: (value) {
-                                    setState(() {
-                                      set['lbs'] = value; // Update weight of the current set
-                                    });
-                                  },
-                                      initialValue: set['lbs'])),
-                                  SizedBox(width: 10,),
-                                  Expanded(child: TextFormField(onChanged: (value) {
-                                    setState(() {
-                                      set['reps'] = value; // Update reps of the current set
-                                    });
-                                  },
-                                      initialValue: set['reps'])),
+                                  Expanded(
+                                    flex: 4,
+                                    child: Text('${set['set']}'),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0), // Adjust padding here
+                                      child: TextFormField(
+                                        onChanged: (value) {
+                                          setState(() {
+                                            set['lbs'] = value; // Update weight of the current set
+                                          });
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: '0',
+                                          border: InputBorder.none,
+                                        ),
+                                        initialValue: set['lbs'],
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Container(
+                                      margin: EdgeInsets.only(left: 50.0), // Adjust padding here
+                                      child: TextFormField(
+                                        onChanged: (value) {
+                                          setState(() {
+                                            set['reps'] = value; // Update reps of the current set
+                                          });
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: '0',
+                                          border: InputBorder.none,
+                                        ),
+                                        initialValue: set['reps'],
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               );
                             }
@@ -538,7 +583,11 @@ class _PostState extends State<Post> {
                   );
                 },
               ),
+              //Text(message), // In case i need to display whats being inserted into the map
               ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.blueAccent),
+                  ),
                   onPressed: () async{
                     final result = await Navigator.push(
                       context,
@@ -559,8 +608,8 @@ class _PostState extends State<Post> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add),
-                      Text('Add Exercise'),
+                      Icon(Icons.add, color: Colors.white,),
+                      Text('Add Exercise', style: TextStyle(color: Colors.white, fontFamily: 'Plus Jakarta Sans'),),
                     ],
                   )
               ),
@@ -569,7 +618,9 @@ class _PostState extends State<Post> {
                   addPost();
                   _title.text = '';
                   _description.text = '';
-                  selectedExercises = [];
+                  setState(() {
+                    selectedExercises.clear();
+                  });
               }, child: Text('Post Workout'))
             ],
           ),
