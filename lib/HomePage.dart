@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'firebase_options.dart';
+import 'ExerciseList.dart';
 
 
 Future<void> main() async {
@@ -443,11 +444,14 @@ class _HomePageState extends State<HomePage> {
   State<Post> createState() => _PostState();
 }
 class _PostState extends State<Post> {
+  int visualSetNumber = 1;
+  var message = '';
   File? image;
   //get the date & time for the post
   final date = DateTime.now();
   TextEditingController _title = TextEditingController();
   TextEditingController _description = TextEditingController();
+   // This is the list where the selected exercises will be stored
   //could modify the method to allow the user to either take a photo or choose a photo from their gallery
   Future pickImage() async {
     try {
@@ -466,6 +470,7 @@ class _PostState extends State<Post> {
     }
   }
 
+  List<Map<String, dynamic>> selectedExercises = [];
   //add post to Firebase
   //used to perform operations
   CollectionReference posts = FirebaseFirestore.instance.collection('posts');
@@ -477,9 +482,10 @@ class _PostState extends State<Post> {
       'title': _title.text,
       'description': _description.text,
       'timestamp': date,
+      'exercises': selectedExercises,
     })
         .then((value) => print('posts added to firebase'))
-        .catchError((error) => print('failed to add the posts to firebase')
+        .catchError((error) => print('failed to add the posts to firebase $error')
     );
   }
   @override
@@ -542,10 +548,159 @@ class _PostState extends State<Post> {
                 ),
               ),
               SizedBox(height: 15,),
+              SizedBox(height: 15,),
+              Text('Selected Exercises', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              // This is where all the user's selected exercises will show!!
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: selectedExercises.length,
+                itemBuilder: (context, index) {
+                  final exercise = selectedExercises[index];
+                  int setNumber = exercise['sets'].length + 1;
+                  var weight = '';
+                  var reps = '';
+                  return ListTile(
+                    title: Text(
+                        '${exercise['name']} (${exercise['muscle']})',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 10),
+                        Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Set'),
+                            Text('LBS'),
+                            Text('Reps'),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(), // Disable scrolling for nested ListView
+                          itemCount: selectedExercises[index]['sets'].length + 1,
+                          itemBuilder: (context, setIndex) {
+                            if (setIndex == selectedExercises[index]['sets'].length) {
+                              // This is so that the add set button is always at the bottom of each exercise
+                              return ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    selectedExercises[index]['sets'].add({'set': setNumber.toString(), 'lbs': '', 'reps': ''});
+                                    message = selectedExercises.toString();
+                                  });
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add, color: Colors.white,),
+                                    Text(
+                                        'Add Set',
+                                      style: TextStyle(
+                                        color: Colors.white
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              );
+                            } else {
+                              final set = selectedExercises[index]['sets'][setIndex];
+                              return Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    flex: 4,
+                                    child: Text('${set['set']}'),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0), // Adjust padding here
+                                      child: TextFormField(
+                                        onChanged: (value) {
+                                          setState(() {
+                                            set['lbs'] = value; // Update weight of the current set
+                                          });
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: '0',
+                                          border: InputBorder.none,
+                                        ),
+                                        initialValue: set['lbs'],
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Container(
+                                      margin: EdgeInsets.only(left: 50.0), // Adjust padding here
+                                      child: TextFormField(
+                                        onChanged: (value) {
+                                          setState(() {
+                                            set['reps'] = value; // Update reps of the current set
+                                          });
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: '0',
+                                          border: InputBorder.none,
+                                        ),
+                                        initialValue: set['reps'],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              //Text(message), // In case i need to display whats being inserted into the map
+              ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.blueAccent),
+                  ),
+                  onPressed: () async{
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ExerciseSelection()),
+                      );
+                    if (result != null) {
+                      setState(() {
+                        // Add selected exercise to the list
+                        selectedExercises.add({
+                          'name': result['name'],
+                          'muscle': result['muscle'],
+                          'sets': [], // Initialize sets list with an empty list
+                        });
+                      });
+                    }
+                  },
+
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add, color: Colors.white,),
+                      Text('Add Exercise', style: TextStyle(color: Colors.white, fontFamily: 'Plus Jakarta Sans'),),
+                    ],
+                  )
+              ),
+              SizedBox(height: 15,),
               ElevatedButton(onPressed: (){
                   addPost();
                   _title.text = '';
                   _description.text = '';
+                  setState(() {
+                    selectedExercises.clear();
+                  });
               }, child: Text('Post Workout'))
             ],
           ),
