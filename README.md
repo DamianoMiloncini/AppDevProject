@@ -18,3 +18,15 @@ samples, guidance on mobile development, and a full API reference.
 
 # AppDevProject
  a72fe1b2112a7719615ccf347a52af9ef574631f
+
+ # To-Do
+ Micka
+ - Notification
+ - 'You' page (BMI, charts)
+ - comments
+
+Damiano
+- Authentication
+- Routines (custom and user cab make their own)
+- Profile
+- Sharing
