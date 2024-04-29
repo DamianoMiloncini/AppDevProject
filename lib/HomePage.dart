@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -210,6 +212,7 @@ class _HomePageState extends State<HomePage> {
   FirebaseFirestore.instance.collection('posts').snapshots();
   Map<String, dynamic>? _selectedData; // Track selected data
 
+
   void _toggleContent(Map<String, dynamic>? data) {
     setState(() {
       _selectedData = data;
@@ -220,15 +223,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _selectedData == null
-          ? _HomePage2(_postStream, _toggleContent) // Show original content if data is null
-          : _DetailsPost(_selectedData!), // Show details post if data is not null
+          ? _HomePage2(
+          _postStream, _toggleContent) // Show original content if data is null
+          : _DetailsPost(
+          _selectedData!), // Show details post if data is not null
     );
   }
 
-  Widget _HomePage2(
-      Stream<QuerySnapshot> postStream,
-      Function(Map<String, dynamic>?) toggleContent,
-      ) {
+  Widget _HomePage2(Stream<QuerySnapshot> postStream,
+      Function(Map<String, dynamic>?) toggleContent,) {
     return Container(
       padding: EdgeInsets.all(20),
       child: Column(
@@ -256,7 +259,8 @@ class _HomePageState extends State<HomePage> {
           ),
           StreamBuilder<QuerySnapshot>(
             stream: postStream,
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            builder: (BuildContext context,
+                AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError) {
                 return Text('Something went wrong :(');
               }
@@ -268,7 +272,8 @@ class _HomePageState extends State<HomePage> {
               return Expanded(
                 child: ListView(
                   shrinkWrap: true,
-                  children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                  children: snapshot.data!.docs.map((
+                      DocumentSnapshot document) {
                     Map<String, dynamic> data =
                     document.data()! as Map<String, dynamic>;
                     Timestamp timestamp = data['timestamp'];
@@ -314,7 +319,9 @@ class _HomePageState extends State<HomePage> {
                                         // TODO: fetch the actual username from firebase and add it here amigo
                                         Text('Username'),
                                         SizedBox(width: 15,),
-                                        Text('${date.year}-${date.month}-${date.day}  ${date.hour}:${date.minute} ')
+                                        Text('${date.year}-${date.month}-${date
+                                            .day}  ${date.hour}:${date
+                                            .minute} ')
                                       ],
                                     ),
                                     SizedBox(height: 15,),
@@ -331,19 +338,22 @@ class _HomePageState extends State<HomePage> {
                                     //row of icons
                                     Expanded(
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        mainAxisAlignment: MainAxisAlignment
+                                            .spaceEvenly,
                                         children: [
                                           TextButton(
                                             onPressed: () {},
                                             child: Icon(Icons.message),
-                                          ), // should i add the number of comments and likes ?
+                                          ),
+                                          // should i add the number of comments and likes ?
                                           TextButton(
                                             onPressed: () {},
                                             child: Icon(Icons.favorite_border),
                                           ),
                                           TextButton(
                                             onPressed: () {},
-                                            child: Icon(Icons.bookmark_add_outlined),
+                                            child: Icon(
+                                                Icons.bookmark_add_outlined),
                                           ),
                                           TextButton(
                                             onPressed: () {},
@@ -369,21 +379,64 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   //TODO: Make this page better with a go back to main page pop
   Widget _DetailsPost(Map<String, dynamic> data) {
+    Timestamp timestamp = data['timestamp'];
+    DateTime date = timestamp.toDate();
+    var exercises = data['exercises'];
+    //var sets = exercises['sets'].toString();
+
+    Widget printExercises() {
+      return ListView.builder(
+        //the amount of time i spent just for the solution to be shrinkWrap esti
+        shrinkWrap: true,
+        itemCount: exercises.length,
+        itemBuilder: (BuildContext context, int index) {
+          var exercise = exercises[index];
+          var sets = exercise['sets'];
+          return Column(
+            children: [
+              Text('Muscle Target: ${exercise['muscle']}'),
+              Text('Exercice : ${exercise['name']}'),
+              ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: sets.length,
+                  itemBuilder: (BuildContext context2, int index2) {
+                    var set = sets[index2];
+                    return Column(
+                      children: [
+                        Text('Set ${set['set']}'),
+                        Text('Lbs: ${set['lbs']}'),
+                        Text('Reps: ${set['reps']}'),
+                      ],
+                    );
+                  }
+              )
+            ],
+          );
+        },
+      );
+    }
+
     return Container(
       padding: EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(data['title']), // Display selected data
-          // Other details to display...
+          Text(data['title'],
+              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 32)),
+          Text('${date.year}-${date.month}-${date.day}  ${date.hour}:${date.minute} '),
+          SizedBox(height: 20,),
+          Text(data['description']),
+          printExercises(),
         ],
       ),
     );
   }
 }
-class Post extends StatefulWidget {
+
+  class Post extends StatefulWidget {
   const Post({super.key});
 
   @override
