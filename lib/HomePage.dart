@@ -5,8 +5,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'firebase_options.dart';
+import 'ExerciseList.dart';
 
 
 Future<void> main() async {
@@ -364,11 +364,14 @@ class Post extends StatefulWidget {
   State<Post> createState() => _PostState();
 }
 class _PostState extends State<Post> {
+  int visualSetNumber = 1;
+  var message = '';
   File? image;
   //get the date & time for the post
   final date = DateTime.now();
   TextEditingController _title = TextEditingController();
   TextEditingController _description = TextEditingController();
+   // This is the list where the selected exercises will be stored
   //could modify the method to allow the user to either take a photo or choose a photo from their gallery
   Future pickImage() async {
     try {
@@ -387,6 +390,7 @@ class _PostState extends State<Post> {
     }
   }
 
+  List<Map<String, dynamic>> selectedExercises = [];
   //add post to Firebase
   //used to perform operations
   CollectionReference posts = FirebaseFirestore.instance.collection('posts');
@@ -398,9 +402,10 @@ class _PostState extends State<Post> {
       'title': _title.text,
       'description': _description.text,
       'timestamp': date,
+      'exercises': selectedExercises,
     })
         .then((value) => print('posts added to firebase'))
-        .catchError((error) => print('failed to add the posts to firebase')
+        .catchError((error) => print('failed to add the posts to firebase $error')
     );
   }
   @override
@@ -463,10 +468,108 @@ class _PostState extends State<Post> {
                 ),
               ),
               SizedBox(height: 15,),
+              SizedBox(height: 15,),
+              Text('Selected Exercises', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              // This is where all the user's selected exercises will show!!
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: selectedExercises.length,
+                itemBuilder: (context, index) {
+                  final exercise = selectedExercises[index];
+                  int setNumber = exercise['sets'].length + 1;
+                  var weight = '';
+                  var reps = '';
+                  return ListTile(
+                    title: Text('${exercise['name']}'),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Muscle: ${exercise['muscle']}'),
+                        SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(child: Text('Set')),
+                            Expanded(child: Text('LBS')),
+                            Expanded(child: Text('Reps')),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: selectedExercises[index]['sets'].length + 1, // Add 1 for the "Add Set" button
+                          itemBuilder: (context, setIndex) {
+                            if (setIndex == selectedExercises[index]['sets'].length) {
+                              // Display "Add Set" button at the end
+                              return ElevatedButton(
+                                onPressed: () {
+                                  visualSetNumber++;
+                                  setState(() {
+                                    selectedExercises[index]['sets'].add({'set': setNumber.toString(), 'lbs': '', 'reps': ''});
+                                    message = selectedExercises.toString(); // in case we need to display what is in the map
+                                  });
+                                },
+                                child: Text('Add Set'),
+                              );
+                            } else {
+                              final set = selectedExercises[index]['sets'][setIndex];
+                              return Row(
+                                children: [
+                                  Expanded(child: Text('${set['set']}')),
+                                  Expanded(child: TextFormField(onChanged: (value) {
+                                    setState(() {
+                                      set['lbs'] = value; // Update weight of the current set
+                                    });
+                                  },
+                                      initialValue: set['lbs'])),
+                                  SizedBox(width: 10,),
+                                  Expanded(child: TextFormField(onChanged: (value) {
+                                    setState(() {
+                                      set['reps'] = value; // Update reps of the current set
+                                    });
+                                  },
+                                      initialValue: set['reps'])),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              ElevatedButton(
+                  onPressed: () async{
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ExerciseSelection()),
+                      );
+                    if (result != null) {
+                      setState(() {
+                        // Add selected exercise to the list
+                        selectedExercises.add({
+                          'name': result['name'],
+                          'muscle': result['muscle'],
+                          'sets': [], // Initialize sets list with an empty list
+                        });
+                      });
+                    }
+                  },
+
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add),
+                      Text('Add Exercise'),
+                    ],
+                  )
+              ),
+              SizedBox(height: 15,),
               ElevatedButton(onPressed: (){
                   addPost();
                   _title.text = '';
                   _description.text = '';
+                  selectedExercises = [];
               }, child: Text('Post Workout'))
             ],
           ),
