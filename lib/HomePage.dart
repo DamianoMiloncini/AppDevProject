@@ -5,7 +5,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'firebase_options.dart';
 
 
@@ -44,6 +43,7 @@ class _MyAppState extends State<MyApp> {
             titleTextStyle: TextStyle(color: Colors.white)
         ),
         drawerTheme: DrawerThemeData(backgroundColor: Colors.blueGrey,),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(backgroundColor: Colors.blueGrey)
       ),
       home: InitialPage(),
       darkTheme: ThemeData.dark(), //set what dark theme is
@@ -82,6 +82,7 @@ class _InitialPageState extends State<InitialPage> {
       Icons.chat,
       size: 150,
     ),
+
   ];
   @override
   Widget build(BuildContext context) {
@@ -100,7 +101,6 @@ class _InitialPageState extends State<InitialPage> {
         //backgroundColor: Colors.blueGrey,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.blueGrey,
         selectedItemColor: Colors.white,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,//color for the icon when that current page is being displayed
@@ -199,160 +199,186 @@ class _InitialPageState extends State<InitialPage> {
 //new post page
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  //-1: this is creating a stream of data that continously being updated whenever there is a change in the firebase (used to read what is in the firebase)
-  final Stream<QuerySnapshot> _postStream = FirebaseFirestore.instance.collection('posts').snapshots();
+  final Stream<QuerySnapshot> _postStream =
+  FirebaseFirestore.instance.collection('posts').snapshots();
+  Map<String, dynamic>? _selectedData; // Track selected data
+
+  void _toggleContent(Map<String, dynamic>? data) {
+    setState(() {
+      _selectedData = data;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //will be Hello $user later on :)
-            Row(
-              children: [
-                Text('Hello,',style: TextStyle(fontSize: 35),),
-                //TODO: Fetch the actual username logged in !
-                Text('Micka',style: TextStyle(fontSize: 35,color: Colors.deepPurpleAccent,fontWeight: FontWeight.w500),),
-              ],
-            ),
-            Text('Your current progress of the day',style: TextStyle(fontSize: 15,color: Colors.grey,),),
+      body: _selectedData == null
+          ? _HomePage2(_postStream, _toggleContent) // Show original content if data is null
+          : _DetailsPost(_selectedData!), // Show details post if data is not null
+    );
+  }
 
-            //TODO: Display user's posts ! :)
-
-            StreamBuilder<QuerySnapshot>(
-                stream: _postStream,
-                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.hasError) {
-                    return Text('Something went wrong :(');
-                  }
-                  //if the data is loading
-                  if(snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator(); //ofc i had to use it
-                  }
-                  //ListView of all the posts
-                  return Expanded(
-                    child: ListView(
-                    shrinkWrap: true,
-                    children: snapshot.data!.docs
-                        .map((DocumentSnapshot document) {
-                      Map<String, dynamic> data =
-                      document.data()! as Map<String, dynamic>;
-                      //format the date & time displayed for each post
-                      Timestamp timestamp = data['timestamp'];
-                      DateTime date = timestamp.toDate();
-                      //GOOD TO KNOW: if one of your documents doesnt have the field that you are trying to read, you will get an error
-                      //TODO: Style it like the mock up :)
-                      // Wrap the Column with SingleChildScrollView to make it scrollable
-                      return SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.symmetric(vertical: 10),
-                              child: ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
+  Widget _HomePage2(
+      Stream<QuerySnapshot> postStream,
+      Function(Map<String, dynamic>?) toggleContent,
+      ) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Hello,',
+                style: TextStyle(fontSize: 35),
+              ),
+              //TODO: Fetch the actual username logged in !
+              Text(
+                'Micka',
+                style: TextStyle(
+                    fontSize: 35,
+                    color: Colors.deepPurpleAccent,
+                    fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+          Text(
+            'Your current progress of the day',
+            style: TextStyle(fontSize: 15, color: Colors.grey),
+          ),
+          StreamBuilder<QuerySnapshot>(
+            stream: postStream,
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.hasError) {
+                return Text('Something went wrong :(');
+              }
+              //if the data is loading
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator(); //ofc i had to use it
+              }
+              //ListView of all the posts
+              return Expanded(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                    Map<String, dynamic> data =
+                    document.data()! as Map<String, dynamic>;
+                    Timestamp timestamp = data['timestamp'];
+                    DateTime date = timestamp.toDate();
+                    return SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                // Toggle content and pass the selected data to DetailsPost
+                                toggleContent(data);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
                                 ),
-                                child: Container(
-                                  padding: EdgeInsets.all(10),
-                                  width: 300,
-                                  height: 150,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Have the user avatar & username
-                                      Row(
-                                        children: [
-                                          Container(
-                                            width: 50,
-                                            height: 50,
-                                            clipBehavior: Clip.antiAlias,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Image.network(
-                                              'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlcnxlbnwwfHwwfHx8MA%3D%3D',
-                                              fit: BoxFit.fitWidth,
-                                            ),
+                              ),
+                              child: Container(
+                                padding: EdgeInsets.all(10),
+                                width: 300,
+                                height: 150,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Have the user avatar & username
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 50,
+                                          height: 50,
+                                          clipBehavior: Clip.antiAlias,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
                                           ),
-                                          SizedBox(width: 15,),
-                                          // TODO: fetch the actual username from firebase and add it here amigo
-                                            Text('Username'),
-                                          SizedBox(width: 15,),
-
-                                          Text('${date.year}-${date.month}-${date.day}  ${date.hour}:${date.minute} ')
-                                        ],
-                                      ),
-                                      SizedBox(height: 15,),
-                                      //workout description
-                                      Expanded(child: Text(data['description']),), //in case the user enters a long ass description
-                                      //SizedBox(height: 10,),
-                                      //little divider to have the icons underneath !
-                                      Divider(
-                                        height: 2,
-                                        thickness: 1,
-                                      ),
-                                      //row of icons
-                                      Expanded(child:
-                                      Row(
+                                          child: Image.network(
+                                            'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlcnxlbnwwfHwwfHx8MA%3D%3D',
+                                            fit: BoxFit.fitWidth,
+                                          ),
+                                        ),
+                                        SizedBox(width: 15,),
+                                        // TODO: fetch the actual username from firebase and add it here amigo
+                                        Text('Username'),
+                                        SizedBox(width: 15,),
+                                        Text('${date.year}-${date.month}-${date.day}  ${date.hour}:${date.minute} ')
+                                      ],
+                                    ),
+                                    SizedBox(height: 15,),
+                                    //workout description
+                                    Expanded(
+                                      child: Text(
+                                        data['description'],
+                                      ), //in case the user enters a long ass description
+                                    ),
+                                    Divider(
+                                      height: 2,
+                                      thickness: 1,
+                                    ),
+                                    //row of icons
+                                    Expanded(
+                                      child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                         children: [
-                                          TextButton(onPressed: (){
-
-                                          }, child: Icon(Icons.message),
+                                          TextButton(
+                                            onPressed: () {},
+                                            child: Icon(Icons.message),
                                           ), // should i add the number of comments and likes ?
-                                          TextButton(onPressed: (){
-
-                                          }, child: Icon(Icons.favorite_border),
+                                          TextButton(
+                                            onPressed: () {},
+                                            child: Icon(Icons.favorite_border),
                                           ),
-                                          TextButton(onPressed: (){
-
-                                          }, child: Icon(Icons.bookmark_add_outlined),
+                                          TextButton(
+                                            onPressed: () {},
+                                            child: Icon(Icons.bookmark_add_outlined),
                                           ),
-                                          TextButton(onPressed: (){
-
-                                          }, child: Icon(Icons.share),
+                                          TextButton(
+                                            onPressed: () {},
+                                            child: Icon(Icons.share),
                                           ),
-
                                         ],
-                                      ))
-
-                                      // Text(
-                                      //   data['title'],
-                                      //   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                                      // ),
-                                      // SizedBox(height: 5),
-                                      // Text(data['description']),
-                                    ],
-                                  ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                            // Add other ElevatedButton widgets wrapped with Padding here
-                          ],
-                        ),
-                      );
-
-
-
-
-                    }).toList(),
-                  ),);
-                }
-            )
-          ],
-        ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  //TODO: Make this page better with a go back to main page pop
+  Widget _DetailsPost(Map<String, dynamic> data) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(data['title']), // Display selected data
+          // Other details to display...
+        ],
       ),
     );
   }
@@ -473,7 +499,154 @@ class _PostState extends State<Post> {
         ),
 
       )
-
     );
+
   }
 }
+
+// class DetailPosts extends StatefulWidget {
+//   //find a way to have the same layout in every page without having to copy paste the app bar, nav bar, ect
+//   final Map<String, dynamic> data;
+//
+//   const DetailPosts({super.key, required this.data});
+//
+//   @override
+//   State<DetailPosts> createState() => _DetailPostsState();
+// }
+//
+// class _DetailPostsState extends State<DetailPosts> {
+//   int _selectedIndex = 0;
+//
+//   void _onItemTapped(int index) {
+//     setState(() {
+//       _selectedIndex = index;
+//     });
+//   }
+//   //list of pages for the nav bar buttons
+//   static const List<Widget> _pages = <Widget>[
+//     HomePage(),
+//     Post(),
+//     Icon(
+//       Icons.chat,
+//       size: 150,
+//     ),
+//   ];
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         //not sure if the app bar should just display the name of the app at all times or it should change names according to the page name yk?
+//         title: Text('Evolve',style: TextStyle(fontSize: 40,fontWeight: FontWeight.w600),),
+//         toolbarHeight: 60.2,
+//         toolbarOpacity: 0.8,
+//         shape: const RoundedRectangleBorder(
+//           borderRadius: BorderRadius.only(
+//               bottomRight: Radius.circular(5),
+//               bottomLeft: Radius.circular(5)),
+//         ),
+//         elevation: 0.00,
+//         //backgroundColor: Colors.blueGrey,
+//       ),
+//       bottomNavigationBar: BottomNavigationBar(
+//         backgroundColor: Colors.blueGrey,
+//         selectedItemColor: Colors.white,
+//         currentIndex: _selectedIndex,
+//         onTap: _onItemTapped,//color for the icon when that current page is being displayed
+//         items: [
+//           BottomNavigationBarItem(
+//             icon: Icon(Icons.home),
+//             label: 'Home',
+//           ),
+//           BottomNavigationBarItem(
+//             icon: Icon(Icons.post_add),
+//             label: 'New Post',
+//
+//           ),
+//           BottomNavigationBarItem(
+//               icon: Icon(Icons.people),
+//               label: 'Following'
+//           ),
+//         ],
+//       ),
+//       body:
+//       //i love putting stuff in containers, i cant help it
+//       Container(
+//         child: Column(
+//           children: [
+//             Text(widget.data['title']),
+//           ],
+//         ), //New
+//       ),
+//       drawer: Drawer(
+//         child: ListView(
+//           padding: EdgeInsets.zero,
+//           children: [
+//             //TODO: You can change to your liking honestly
+//             const UserAccountsDrawerHeader(
+//               decoration: BoxDecoration(
+//                   color: Colors.white38
+//               ),
+//               //for now, this is HardCoded but fetch from database later on !!
+//               accountName: Text('Micka'),
+//               accountEmail: Text('micka@gmail.com'),
+//               currentAccountPicture: //should we allow the user to upload their picture? Should we give the user options of profile pictures to choose from ?,
+//               CircleAvatar(
+//                 backgroundColor: Colors.blueAccent,
+//                 foregroundColor: Colors.lightGreen,
+//                 child: Text('M',style: TextStyle(fontSize: 30),),
+//               ),
+//             ),
+//             //account tile
+//             ListTile(
+//               //something is bothering me with the way this is styled but whateva
+//               leading: const Icon(Icons.account_circle_outlined,size: 30,),
+//               title: const Text('Account Settings'),
+//               trailing: const Icon(Icons.arrow_forward),
+//               onTap: () {
+//                 //push to User settings page
+//               },
+//             ),
+//             SizedBox(height: 10,),
+//             Row(
+//               children: [
+//                 //light theme button
+//                 ElevatedButton(onPressed: () {
+//                   MyApp.of(context).changeTheme(ThemeMode.light);
+//                   Navigator.pop(context); //to close the drawer after the user clicks the button
+//                 } ,
+//                   child: Row(
+//                     mainAxisAlignment: MainAxisAlignment.center,
+//                     children: [
+//                       //little sun
+//                       Icon(Icons.wb_sunny_outlined),
+//                       SizedBox(width: 5,),
+//                       Text('Light Mode')
+//                     ],
+//                   ),
+//                 ),
+//                 SizedBox(width: 5,),
+//                 ElevatedButton(onPressed: () {
+//                   MyApp.of(context).changeTheme(ThemeMode.dark);
+//                   Navigator.pop(context); //to close the drawer after the user clicks the button
+//                 },
+//                   child: Row(
+//                     children: [
+//                       //little moon
+//                       Icon(Icons.dark_mode_outlined),
+//                       SizedBox(width: 5,),
+//                       Text('Dark Mode')
+//                     ],
+//                   ),
+//                 ),
+//
+//               ],
+//             )
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+
+
