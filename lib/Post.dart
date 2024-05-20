@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'firebase_options.dart';
 import 'ExerciseList.dart';
+import 'package:provider/provider.dart';
+import 'Session.dart';
 
 class Post extends StatefulWidget {
   const Post({super.key});
@@ -45,11 +47,12 @@ class _PostState extends State<Post> {
   //add post to Firebase
   //used to perform operations
   CollectionReference posts = FirebaseFirestore.instance.collection('posts');
-  Future<void> addPost() {
+  Future<void> addPost(uid) {
     //customize the name of the document so that its not a random ass string
     DocumentReference newPosts = posts.doc(_title.text);
     return newPosts.set({
       //add the photo link later
+      'uid': uid,
       'title': _title.text,
       'description': _description.text,
       'timestamp': date,
@@ -61,6 +64,7 @@ class _PostState extends State<Post> {
   }
   @override
   Widget build(BuildContext context) {
+    UserProvider userProvider = Provider.of<UserProvider>(context);
     return Scaffold(
         appBar: AppBar(
           title: Text('New Post',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 30),),
@@ -269,7 +273,7 @@ class _PostState extends State<Post> {
                 ),
                 SizedBox(height: 15,),
                 ElevatedButton(onPressed: (){
-                  addPost();
+                  addPost(userProvider.user!.uid);
                   _title.text = '';
                   _description.text = '';
                   setState(() {
