@@ -38,6 +38,7 @@ dependencies:
   app_color: any
   syncfusion_flutter_charts: ^25.2.4
   shared_preferences: ^2.2.3
+  provider: ^6.0.0
 
 
 
