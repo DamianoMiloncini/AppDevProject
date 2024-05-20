@@ -47,7 +47,7 @@ class _CreateAccountState extends State<CreateAccount> {
 
 
   Future<void> addUser() async{
- exists) {
+  {
       setState(() {
         _errorMessage = "Username already in use";
       });

@@ -62,6 +62,9 @@ class _PostState extends State<Post> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          title: Text('New Post',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 30),),
+        ),
         body:
         SingleChildScrollView( //to avoid having a overflow when the user try to write something
           child: Container(
@@ -75,8 +78,8 @@ class _PostState extends State<Post> {
               //mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start, //to make sure that it is not all centered (it bothered me frl)
               children: [
-                Text('New Post',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 30),),
-                SizedBox(height: 5,),
+                //Text('New Post',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 30),),
+                //SizedBox(height: 5,),
                 Text('Please make sure to provide what is required.',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 15,color: Colors.grey),),
                 SizedBox(height: 15,),
                 //make a HUGE elevated button to allow the user to add a photo
