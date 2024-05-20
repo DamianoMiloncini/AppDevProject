@@ -9,14 +9,27 @@ import 'package:flutter/services.dart';
 import 'firebase_options.dart';
 import 'HomePage.dart';
 import 'Post.dart';
+import 'CreateRoutine.dart';
+import 'WorkoutPage.dart';
 import 'Account.dart';
+import 'logIn.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'Session.dart'; // Import the user provider
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
    await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 //need a stful widget for the app theme
 class MyApp extends StatefulWidget {
@@ -48,7 +61,7 @@ class _MyAppState extends State<MyApp> {
         drawerTheme: DrawerThemeData(backgroundColor: Colors.blueGrey,),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(backgroundColor: Colors.blueGrey)
       ),
-      home: InitialPage(),
+      home: AuthWrapper(),
       darkTheme: ThemeData.dark(), //set what dark theme is
       themeMode: _themeMode, //use the variable so that I can change its state
     );
@@ -61,6 +74,24 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
+class AuthWrapper extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.hasData) {
+          return InitialPage(); // Your home page widget
+        } else {
+          return HomePageWidget(); // Your sign-in page widget
+        }
+      },
+    );
+  }
+}
+
 
 class InitialPage extends StatefulWidget {
   const InitialPage({super.key});
@@ -70,6 +101,7 @@ class InitialPage extends StatefulWidget {
 }
 
 class _InitialPageState extends State<InitialPage> {
+
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
@@ -80,12 +112,29 @@ class _InitialPageState extends State<InitialPage> {
   //list of pages for the nav bar buttons
   static const List<Widget> _pages = <Widget>[
     HomePage(),
-    Post(),
+    WorkoutPage(),
     Account(),
 
   ];
+
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> signOutUser(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => HomePageWidget()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    UserProvider userProvider = Provider.of<UserProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         //not sure if the app bar should just display the name of the app at all times or it should change names according to the page name yk?
@@ -110,13 +159,13 @@ class _InitialPageState extends State<InitialPage> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.post_add),
-              label: 'New Post',
+            icon: Icon(Icons.post_add),
+            label: 'New Post',
 
           ),
           BottomNavigationBarItem(
               icon: Icon(Icons.people),
-              label: 'Account'
+              label: 'Following'
           ),
         ],
       ),
@@ -130,19 +179,19 @@ class _InitialPageState extends State<InitialPage> {
           padding: EdgeInsets.zero,
           children: [
             //TODO: You can change to your liking honestly
-            const UserAccountsDrawerHeader(
-                decoration: BoxDecoration(
-                    color: Colors.white38
-                ),
-                //for now, this is HardCoded but fetch from database later on !!
-                accountName: Text('Micka'),
-                accountEmail: Text('micka@gmail.com'),
-                currentAccountPicture: //should we allow the user to upload their picture? Should we give the user options of profile pictures to choose from ?,
-                CircleAvatar(
-                  backgroundColor: Colors.blueAccent,
-                  foregroundColor: Colors.lightGreen,
-                  child: Text('M',style: TextStyle(fontSize: 30),),
-                ),
+            UserAccountsDrawerHeader(
+              decoration: BoxDecoration(
+                  color: Colors.white38
+              ),
+              //for now, this is HardCoded but fetch from database later on !!
+              accountName: Text(userProvider.user!.username),
+              accountEmail: Text(userProvider.user!.email),
+              currentAccountPicture: //should we allow the user to upload their picture? Should we give the user options of profile pictures to choose from ?,
+              CircleAvatar(
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.lightGreen,
+                child: Text('M',style: TextStyle(fontSize: 30),),
+              ),
             ),
             //account tile
             ListTile(
@@ -164,13 +213,13 @@ class _InitialPageState extends State<InitialPage> {
                 } ,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    //little sun
-                    Icon(Icons.wb_sunny_outlined),
-                    SizedBox(width: 5,),
-                    Text('Light Mode')
-                  ],
-                ),
+                    children: [
+                      //little sun
+                      Icon(Icons.wb_sunny_outlined),
+                      SizedBox(width: 5,),
+                      Text('Light Mode')
+                    ],
+                  ),
                 ),
                 SizedBox(width: 5,),
                 ElevatedButton(onPressed: () {
@@ -178,16 +227,31 @@ class _InitialPageState extends State<InitialPage> {
                   Navigator.pop(context); //to close the drawer after the user clicks the button
                 },
                   child: Row(
-                  children: [
-                    //little moon
-                    Icon(Icons.dark_mode_outlined),
-                    SizedBox(width: 5,),
-                    Text('Dark Mode')
-                  ],
+                    children: [
+                      //little moon
+                      Icon(Icons.dark_mode_outlined),
+                      SizedBox(width: 5,),
+                      Text('Dark Mode')
+                    ],
+                  ),
                 ),
-                ),
+
+
               ],
-            )
+            ),
+            ElevatedButton(onPressed: () async {
+              await signOutUser(context);
+            },
+              child: Row(
+                children: [
+                  //little moon
+                  Icon(Icons.dark_mode_outlined),
+                  SizedBox(width: 5,),
+                  Text('Sign Out')
+                ],
+              ),
+            ),
+
           ],
         ),
       ),
@@ -195,7 +259,6 @@ class _InitialPageState extends State<InitialPage> {
   }
 }
 
-//new post page
 
 
 
