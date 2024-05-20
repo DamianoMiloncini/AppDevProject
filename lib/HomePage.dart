@@ -23,8 +23,42 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final Stream<QuerySnapshot> _postStream =
   FirebaseFirestore.instance.collection('posts').snapshots();
-  Map<String, dynamic>? _selectedData; // Track selected data
+  Map<String, dynamic>? _selectedData;
+  final CollectionReference _userCollection =
+  FirebaseFirestore.instance.collection('users');
+  late UserProvider userProvider;
 
+  //Map to store user IDs and corresponding usernames
+  Map<String, String> _usernames = {};
+
+  @override
+  void initState() {
+    super.initState();
+    userProvider = Provider.of<UserProvider>(context, listen: false);
+  }
+
+  //Method to fetch username by user ID
+  Future<void> _fetchUsername(String uid) async {
+    if (!_usernames.containsKey(uid)) {
+      try {
+        DocumentSnapshot userDoc = await _userCollection.doc(uid).get();
+        if (userDoc.exists) {
+          setState(() {
+            _usernames[uid] = userDoc.get('username') ?? 'Unknown'; //if cannot be found, put unknown user
+          });
+        } else {
+          setState(() {
+            _usernames[uid] = 'Unknown';
+          });
+        }
+      } catch (e) {
+        print('Error fetching username: $e');
+        setState(() {
+          _usernames[uid] = 'Unknown';
+        });
+      }
+    }
+  }
 
   void _toggleContent(Map<String, dynamic>? data) {
     setState(() {
@@ -34,20 +68,17 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       body: _selectedData == null
-          ? _HomePage2(
-          _postStream, _toggleContent) // Show original content if data is null
-          : _DetailsPost(
-          _selectedData!), // Show details post if data is not null
+          ? _HomePage2(_postStream, _toggleContent)
+          : _DetailsPost(_selectedData!),
     );
   }
 
-  Widget _HomePage2(Stream<QuerySnapshot> postStream,
-      Function(Map<String, dynamic>?) toggleContent) {
-    UserProvider userProvider = Provider.of<UserProvider>(context);
+  Widget _HomePage2(
+      Stream<QuerySnapshot> postStream, Function(Map<String, dynamic>?) toggleContent) {
+    userProvider = Provider.of<UserProvider>(context);
+
     return Container(
       padding: EdgeInsets.all(20),
       child: Column(
@@ -59,7 +90,6 @@ class _HomePageState extends State<HomePage> {
                 'Hello,',
                 style: TextStyle(fontSize: 35),
               ),
-              //TODO: Fetch the actual username logged in !
               Text(
                 userProvider.user!.username,
                 style: TextStyle(
@@ -75,23 +105,24 @@ class _HomePageState extends State<HomePage> {
           ),
           StreamBuilder<QuerySnapshot>(
             stream: postStream,
-            builder: (BuildContext context,
-                AsyncSnapshot<QuerySnapshot> snapshot) {
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError) {
                 return Text('Something went wrong :(');
               }
-              //if the data is loading
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator(); //ofc i had to use it
+                return CircularProgressIndicator();
               }
-              //ListView of all the posts
+
               return Expanded(
                 child: ListView(
                   shrinkWrap: true,
-                  children: snapshot.data!.docs.map((
-                      DocumentSnapshot document) {
-                    Map<String, dynamic> data =
-                    document.data()! as Map<String, dynamic>;
+                  children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                    Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+                    String uid = data['uid'];
+
+                    //Fetch the username for each post
+                    _fetchUsername(uid);
+
                     Timestamp timestamp = data['timestamp'];
                     DateTime date = timestamp.toDate();
                     return SingleChildScrollView(
@@ -101,7 +132,6 @@ class _HomePageState extends State<HomePage> {
                             padding: EdgeInsets.symmetric(vertical: 10),
                             child: ElevatedButton(
                               onPressed: () {
-                                // Toggle content and pass the selected data to DetailsPost
                                 toggleContent(data);
                               },
                               style: ElevatedButton.styleFrom(
@@ -116,7 +146,6 @@ class _HomePageState extends State<HomePage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Have the user avatar & username
                                     Row(
                                       children: [
                                         Container(
@@ -132,47 +161,38 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                         ),
                                         SizedBox(width: 15,),
-                                        // TODO: fetch the actual username from firebase and add it here amigo
-                                        Text('Username'),
+                                        Text(_usernames[uid] ?? 'Loading...'), //display the username here
                                         SizedBox(width: 15,),
-                                        Text('${date.year}-${date.month}-${date
-                                            .day}  ${date.hour}:${date
-                                            .minute} ')
+                                        Text('${date.year}-${date.month}-${date.day}  ${date.hour}:${date.minute} '),
                                       ],
                                     ),
                                     SizedBox(height: 15,),
-                                    //workout description
                                     Expanded(
                                       child: Text(
                                         data['description'],
-                                      ), //in case the user enters a long ass description
+                                      ),
                                     ),
                                     Divider(
                                       height: 2,
                                       thickness: 1,
                                     ),
-                                    //row of icons
                                     Expanded(
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment
-                                            .spaceEvenly,
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                         children: [
                                           TextButton(
                                             onPressed: () {
-                                              //redirect to the comment page
-                                              Navigator.push(context, MaterialPageRoute(builder: (context) => Comments(data : data)));
+                                              Navigator.push(context, MaterialPageRoute(builder: (context) => Comments(data: data)));
                                             },
                                             child: Icon(Icons.message),
                                           ),
-                                          // should i add the number of comments and likes ?
                                           TextButton(
                                             onPressed: () {},
                                             child: Icon(Icons.favorite_border),
                                           ),
                                           TextButton(
                                             onPressed: () {},
-                                            child: Icon(
-                                                Icons.bookmark_add_outlined),
+                                            child: Icon(Icons.bookmark_add_outlined),
                                           ),
                                           TextButton(
                                             onPressed: () {},
@@ -199,16 +219,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  //TODO: Make this page better with a go back to main page pop
   Widget _DetailsPost(Map<String, dynamic> data) {
     Timestamp timestamp = data['timestamp'];
     DateTime date = timestamp.toDate();
     var exercises = data['exercises'];
-    //var sets = exercises['sets'].toString();
 
     Widget printExercises() {
       return ListView.builder(
-        //the amount of time i spent just for the solution to be shrinkWrap esti
         shrinkWrap: true,
         itemCount: exercises.length,
         itemBuilder: (BuildContext context, int index) {
@@ -217,21 +234,21 @@ class _HomePageState extends State<HomePage> {
           return Column(
             children: [
               Text('Muscle Target: ${exercise['muscle']}'),
-              Text('Exercice : ${exercise['name']}'),
+              Text('Exercise: ${exercise['name']}'),
               ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: sets.length,
-                  itemBuilder: (BuildContext context2, int index2) {
-                    var set = sets[index2];
-                    return Column(
-                      children: [
-                        Text('Set ${set['set']}'),
-                        Text('Lbs: ${set['lbs']}'),
-                        Text('Reps: ${set['reps']}'),
-                      ],
-                    );
-                  }
-              )
+                shrinkWrap: true,
+                itemCount: sets.length,
+                itemBuilder: (BuildContext context2, int index2) {
+                  var set = sets[index2];
+                  return Column(
+                    children: [
+                      Text('Set ${set['set']}'),
+                      Text('Lbs: ${set['lbs']}'),
+                      Text('Reps: ${set['reps']}'),
+                    ],
+                  );
+                },
+              ),
             ],
           );
         },
@@ -243,8 +260,7 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(data['title'],
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 32)),
+          Text(data['title'], style: TextStyle(fontWeight: FontWeight.w500, fontSize: 32)),
           Text('${date.year}-${date.month}-${date.day}  ${date.hour}:${date.minute} '),
           SizedBox(height: 20,),
           Text(data['description']),
