@@ -122,6 +122,7 @@ class _InitialPageState extends State<InitialPage> {
   @override
   void initState() {
     super.initState();
+    Provider.of<UserProvider>(context, listen: false).fetchUserData();
   }
 
   Future<void> signOutUser(BuildContext context) async {
@@ -130,6 +131,8 @@ class _InitialPageState extends State<InitialPage> {
       MaterialPageRoute(builder: (context) => HomePageWidget()),
     );
   }
+
+
 
   @override
   Widget build(BuildContext context) {
