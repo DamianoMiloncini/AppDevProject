@@ -4,12 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
-import 'firebase_options.dart';
-import 'comments.dart';
+import 'WeightPage.dart';
+import 'BMIPage.dart';
 
-
-import 'package:flutter/material.dart';
 
 class Account extends StatefulWidget {
   const Account({super.key});
@@ -100,6 +97,7 @@ class _AccountState extends State<Account> {
                           color: Colors.grey,
                         ),
                         TextButton(onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const WeightPage()));
 
                         }, child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -141,6 +139,7 @@ class _AccountState extends State<Account> {
                           color: Colors.grey,
                         ),
                         TextButton(onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const BMIPage()));
 
                         }, child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

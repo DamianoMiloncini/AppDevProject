@@ -10,6 +10,8 @@ import 'firebase_options.dart';
 import 'comments.dart';
 import 'package:provider/provider.dart';
 import 'Session.dart';
+import 'ExerciseList.dart';
+import 'Post.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
