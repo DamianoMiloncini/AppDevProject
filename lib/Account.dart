@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'WeightPage.dart';
 import 'BMIPage.dart';
+import 'Session.dart';
 
 
 class Account extends StatefulWidget {
@@ -18,7 +20,7 @@ class Account extends StatefulWidget {
 class _AccountState extends State<Account> {
   double BMI = 0;
   double _height = 0;
-  int weight = 0;
+  double weight = 0;
   int age = 0;
   bool _isWomanChecked = false;
   bool _isManChecked = false;
@@ -44,7 +46,62 @@ class _AccountState extends State<Account> {
       return 'Underweight';
     }
   }
+  //to make the userprovider a global variable
+  late UserProvider userProvider;
+  @override
+  void initState() {
+    super.initState();
+    userProvider = Provider.of<UserProvider>(context, listen: false);// Initialize userProvider in initState
+    getWeight(); //get the weight as soon as the page loads
+    getBMI(); //get the bmi as soon as the page loads
+  }
+  //get the weight from the user account
+  final CollectionReference _userCollection = FirebaseFirestore.instance.collection('users');
+  Future<void> getWeight() async {
+    try {
+      //take the document where the user id = the user id passed in the parameter
+      QuerySnapshot querySnapshot = await _userCollection.where('uid', isEqualTo: userProvider.user!.uid).get();
+      //check if there is a document with that id
+      if (querySnapshot.docs.length > 0) {
+        //if yes, update the document with the weight
+        DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+        //get the weight
+        setState(() {
+          weight = documentSnapshot.get('weight');
+        });
+        print('weight was successfully fetched');
+      }
+      else {
+        print('couldnt get the weight from firebase');
+      }
+    }
+    catch (error){
+      print('Failed to update weight in firebase $error');
+    }
+  }
 
+  Future<void> getBMI() async {
+    try {
+      //take the document where the user id = the user id passed in the parameter
+      QuerySnapshot querySnapshot = await _userCollection.where('uid', isEqualTo: userProvider.user!.uid).get();
+      //check if there is a document with that id
+      if (querySnapshot.docs.length > 0) {
+        //if yes, update the document with the weight
+        DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+        //get the weight
+        setState(() {
+          BMI = documentSnapshot.get('BMI');
+        });
+        print('weight was successfully fetched');
+      }
+      else {
+        print('couldnt get the weight from firebase');
+      }
+    }
+    catch (error){
+      print('Failed to update weight in firebase $error');
+    }
+  }
 
 
   @override
@@ -90,7 +147,7 @@ class _AccountState extends State<Account> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Weight'),
-                        Text('$BMI'),
+                        Text('$weight'),
                         SizedBox(height: 45,),
                         Divider(
                           thickness: 1,

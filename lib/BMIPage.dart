@@ -1,9 +1,10 @@
 import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'Session.dart';
 
 class ChartData {
   ChartData(this.month, this.weight);
@@ -26,8 +27,7 @@ class ChartData {
 
   String toJson() => json.encode(toMap());
 
-  factory ChartData.fromJson(String source) =>
-      ChartData.fromMap(json.decode(source));
+  factory ChartData.fromJson(String source) => ChartData.fromMap(json.decode(source));
 }
 
 class BMIPage extends StatefulWidget {
@@ -38,63 +38,75 @@ class BMIPage extends StatefulWidget {
 }
 
 class _BMIPageState extends State<BMIPage> {
-  double _height = 0;
-  double BMI = 0;
-  int weight = 0;
-  TextEditingController _weight = TextEditingController();
+  double _height = 6; // HARDCODED FOR NOW
+  double weight = 0;
+  late UserProvider userProvider;
   final CollectionReference _userCollection = FirebaseFirestore.instance.collection('users');
-
-  //add weight to user in firebase
-  Future <void> addBMI(String userID, double weight) {
-    return _userCollection.add({
-      'userID' : userID,
-      'weight' : weight,
-    }).then((value) => print('weight added to firebase')).catchError((error) => print('Failed to add the weight to firebase $error'));
-  }
-  List<ChartData> chartData = [
-    ChartData('Jan', 0),
-    ChartData('Feb', 0),
-    ChartData('Mar', 0),
-    ChartData('Apr', 0),];
+  String formattedDate = '${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}';
+  List<ChartData> chartData = [];
   late SharedPreferences _prefs;
-
-  double BMICalculation() {
-    double heightMeter = _height * 0.3048;
-    double division = weight / (heightMeter * heightMeter);
-    setState(() {
-      BMI = division;
-    });
-    return BMI;
-  }
-
-  String getText() {
-    if(BMI >=25) {
-      return 'Overweight';
-    }
-    else if (BMI >18.5){
-      return 'Normal';
-    }
-    else {
-      return 'Underweight';
-    }
-  }
 
   @override
   void initState() {
     super.initState();
+    //clearSharedPreferences();
     loadChartData();
   }
 
+  Future<void> clearSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    print('SharedPreferences cleared.');
+  }
+
+  Future<void> getWeight(UserProvider userProvider) async {
+    try {
+      QuerySnapshot querySnapshot = await _userCollection.where('uid', isEqualTo: userProvider.user!.uid).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+        setState(() {
+          weight = documentSnapshot.get('weight') ?? 0;
+        });
+        print('Weight was successfully fetched');
+      } else {
+        print('Couldn\'t get the weight from Firebase');
+      }
+    } catch (error) {
+      print('Failed to fetch weight from Firebase $error');
+    }
+  }
+
+  Future<void> addBMI(String userID, double bmi) async {
+    try {
+      QuerySnapshot querySnapshot = await _userCollection.where('uid', isEqualTo: userID).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+        await documentSnapshot.reference.update({
+          'BMI': bmi // Update with bmi parameter, not class variable BMI
+        });
+        print('BMI added in the user\'s document');
+      } else {
+        print('BMI couldn\'t be added to the user\'s document');
+      }
+    } catch (error) {
+      print('Failed to update BMI in Firebase $error');
+    }
+  }
+
+  double BMICalculation() {
+    double heightMeter = _height * 0.3048;
+    double division = weight / (heightMeter * heightMeter);
+    return division;
+  }
+
   Future<void> loadChartData() async {
-    _prefs = await SharedPreferences.getInstance(); // need this to store data so that when you switch pages and come back, the weight inputted before still shows
-    print(_prefs);
-    if (_prefs.containsKey('chartData')) {
+    _prefs = await SharedPreferences.getInstance();
+    if (_prefs.containsKey('chartBMIData')) {
       setState(() {
-        final List<String> chartDataJson = _prefs.getStringList('chartData')!;
+        final List<String> chartDataJson = _prefs.getStringList('chartBMIData')!;
         chartData = chartDataJson.map((json) => ChartData.fromJson(json)).toList();
       });
     } else {
-      // Initialize with default data
       setState(() {
         chartData = [
           ChartData('Jan', 35),
@@ -108,33 +120,29 @@ class _BMIPageState extends State<BMIPage> {
 
   Future<void> saveChartData() async {
     final List<String> chartDataJson = chartData.map((data) => data.toJson()).toList();
-    await _prefs.setStringList('chartData', chartDataJson);
+    await _prefs.setStringList('chartBMIData', chartDataJson);
   }
 
   @override
   Widget build(BuildContext context) {
+    userProvider = Provider.of<UserProvider>(context); // Access UserProvider with listen: true
+
+    // Fetch weight whenever the userProvider changes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      getWeight(userProvider);
+    });
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Weight Page'),
+        title: Text('BMI Page'),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          TextField(
-            controller: _weight,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              hintText: 'Enter your weight',
-              contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(8.0)),
-              ),
-            ),
-          ),
-          Text('$_height',style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
-          SizedBox(height: 5,),
-          Text('Height (FT)',style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
-          SizedBox(height: 5,),
+          Text('$_height', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          SizedBox(height: 5),
+          Text('Height (FT)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          SizedBox(height: 5),
           Slider(
             value: _height,
             max: 7,
@@ -149,31 +157,25 @@ class _BMIPageState extends State<BMIPage> {
           SizedBox(height: 10.0),
           ElevatedButton(
             onPressed: () {
-              if (_weight.text.isNotEmpty) {
-                setState(() {
-                  //add weight to a specific user
-                  //addWeight(userID, double.parse(_weight.text));
-                  // Add the weight to chart data
-                  chartData.add(ChartData('May', double.parse(_weight.text)));
-                  _weight.text = '';
-                  saveChartData(); // Save chart data after modification
-                });
-              }
+              double bmi = BMICalculation();
+              setState(() {
+                addBMI(userProvider.user!.uid, bmi);
+                chartData.add(ChartData(formattedDate, bmi));
+                saveChartData();
+              });
             },
             child: Text('Update BMI'),
           ),
-          //SizedBox(height: 20.0),
-          SfCartesianChart(
-            primaryXAxis: CategoryAxis(), // Use CategoryAxis for categorical data (months)
-            series: <CartesianSeries>[
-              // Renders line chart
-              LineSeries<ChartData, String>(
-                dataSource: chartData,
-                xValueMapper: (ChartData data, _) => data.month,
-                yValueMapper: (ChartData data, _) => data.weight,
-              )
-            ],
-          ),
+             SfCartesianChart(
+              primaryXAxis: CategoryAxis(),
+              series: <CartesianSeries>[
+                LineSeries<ChartData, String>(
+                  dataSource: chartData,
+                  xValueMapper: (ChartData data, _) => data.month,
+                  yValueMapper: (ChartData data, _) => data.weight,
+                )
+              ],
+            ),
 
         ],
       ),
