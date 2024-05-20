@@ -1,20 +1,27 @@
+import 'dart:convert';
+// import 'dart:html';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
 import 'firebase_options.dart';
+import 'HomePage.dart';
+import 'Post.dart';
+import 'Account.dart';
+import 'logIn.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'ExerciseList.dart';
+import 'package:image_picker/image_picker.dart';
 
-class Post extends StatefulWidget {
-  const Post({super.key});
+class CreateRoutine extends StatefulWidget {
+  const CreateRoutine({super.key});
 
   @override
-  State<Post> createState() => _PostState();
+  State<CreateRoutine> createState() => _CreateRoutineState();
 }
-class _PostState extends State<Post> {
+class _CreateRoutineState extends State<CreateRoutine> {
   int visualSetNumber = 1;
   var message = '';
   File? image;
@@ -24,6 +31,18 @@ class _PostState extends State<Post> {
   TextEditingController _description = TextEditingController();
   // This is the list where the selected exercises will be stored
   //could modify the method to allow the user to either take a photo or choose a photo from their gallery
+
+  User? user;
+  DocumentSnapshot? userData;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    user = FirebaseAuth.instance.currentUser;
+    fetchUserData();
+  }
+
   Future pickImage() async {
     try {
       final image = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -41,15 +60,35 @@ class _PostState extends State<Post> {
     }
   }
 
+
+
+  // Getting the user information
+  Future<void> fetchUserData() async {
+    if (user != null) {
+      try {
+        DocumentSnapshot doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user!.uid)
+            .get();
+        setState(() {
+          userData = doc;
+        });
+      }  catch (e) {
+        print(e);
+      }
+    }
+  }
+
   List<Map<String, dynamic>> selectedExercises = [];
   //add post to Firebase
   //used to perform operations
-  CollectionReference posts = FirebaseFirestore.instance.collection('posts');
+  CollectionReference routines = FirebaseFirestore.instance.collection('routines');
   Future<void> addPost() {
     //customize the name of the document so that its not a random ass string
-    DocumentReference newPosts = posts.doc(_title.text);
-    return newPosts.set({
-      //add the photo link later
+    DocumentReference routine = routines.doc();
+    return routine.set({
+      'id': routine.id,
+      'uid': userData!['uid'],
       'title': _title.text,
       'description': _description.text,
       'timestamp': date,
@@ -59,11 +98,14 @@ class _PostState extends State<Post> {
         .catchError((error) => print('failed to add the posts to firebase $error')
     );
   }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('New Post',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 30),),
+          title: Text('New Routine',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 30),),
         ),
         body:
         SingleChildScrollView( //to avoid having a overflow when the user try to write something
@@ -275,7 +317,7 @@ class _PostState extends State<Post> {
                   setState(() {
                     selectedExercises.clear();
                   });
-                }, child: Text('Post Workout'))
+                }, child: Text('Create Routine'))
               ],
             ),
           ),
