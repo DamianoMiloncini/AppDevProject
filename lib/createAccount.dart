@@ -36,11 +36,23 @@ class CreateAccount extends StatefulWidget {
 }
 
 class _CreateAccountState extends State<CreateAccount> {
+  String _errorMessage = "";
   TextEditingController username = TextEditingController();
   TextEditingController password = TextEditingController();
 
+
+
   CollectionReference users = FirebaseFirestore.instance.collection('users');
-  Future<void> addUser() {
+
+
+
+  Future<void> addUser() async{
+ exists) {
+      setState(() {
+        _errorMessage = "Username already in use";
+      });
+    }
+
     //customize the name of the document so that its not a random ass string
     DocumentReference newPosts = users.doc(username.text);
     return newPosts.set({
@@ -146,6 +158,15 @@ class _CreateAccountState extends State<CreateAccount> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             )
+                        ),
+                        SizedBox(height: 10,),
+                        Text(
+                          _errorMessage,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red
+                          ),
                         ),
                         ElevatedButton(
                           onPressed: () {
