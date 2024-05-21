@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,12 +7,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
+import 'NotificationService.dart';
 import 'firebase_options.dart';
 import 'comments.dart';
 import 'package:provider/provider.dart';
 import 'Session.dart';
 import 'ExerciseList.dart';
 import 'Post.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -35,6 +38,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     userProvider = Provider.of<UserProvider>(context, listen: false);
+    tz.initializeTimeZones();
   }
 
   //Method to fetch username by user ID
@@ -66,8 +70,10 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: _selectedData == null
           ? _HomePage2(_postStream, _toggleContent)
@@ -187,7 +193,10 @@ class _HomePageState extends State<HomePage> {
                                             child: Icon(Icons.message),
                                           ),
                                           TextButton(
-                                            onPressed: () {},
+                                            onPressed: () {
+                                              NotificationService().showNotification(1, 'Test Title', 'Test Body');
+
+                                            },
                                             child: Icon(Icons.favorite_border),
                                           ),
                                           TextButton(

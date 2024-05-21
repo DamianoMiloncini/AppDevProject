@@ -137,7 +137,7 @@ class _AccountState extends State<Account> {
             Text('Progress'),
             // GridView container
             Container(
-              height: 500,
+              height: 250,
               child: GridView.count(
                 primary: false,
                 crossAxisSpacing: 10,
@@ -237,6 +237,7 @@ class _AccountState extends State<Account> {
                 ],
               ),
             ),
+            Text('My Posts'),
             Container(
               //height: 400, // Adjust the height as needed
               child: ListView(
