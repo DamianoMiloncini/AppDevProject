@@ -333,7 +333,7 @@ String image_selected = "1";
                                 MaterialPageRoute(builder: (context) => HomePageWidget())
                             );
                           },
-                          child: Text('Already have an account', style: TextStyle(color: Colors.deepOrangeAccent, fontSize: 12),),
+                          child: Text('Already have an account', style: TextStyle(color: Colors.white24, fontSize: 12),),
                         ),
 
                       ],
