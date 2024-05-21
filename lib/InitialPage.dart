@@ -1,27 +1,27 @@
-import 'package:evolve/NotificationsPage.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:convert';
+// import 'dart:html';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'NotificationService.dart';
 import 'firebase_options.dart';
 import 'HomePage.dart';
+import 'Post.dart';
+import 'CreateRoutine.dart';
 import 'WorkoutPage.dart';
 import 'Account.dart';
 import 'logIn.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'Session.dart'; // Import the user provider
-import 'package:timezone/data/latest.dart' as tz;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await NotificationService().initNotification();
-
   runApp(
     MultiProvider(
       providers: [
@@ -31,7 +31,6 @@ Future<void> main() async {
     ),
   );
 }
-Future backgroundHandler(RemoteMessage msg) async {}
 //need a stful widget for the app theme
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -111,7 +110,7 @@ class _InitialPageState extends State<InitialPage> {
     });
   }
   //list of pages for the nav bar buttons
-  static  List<Widget> _pages = <Widget>[
+  static const List<Widget> _pages = <Widget>[
     HomePage(),
     WorkoutPage(),
     Account(),
@@ -124,14 +123,16 @@ class _InitialPageState extends State<InitialPage> {
   void initState() {
     super.initState();
     Provider.of<UserProvider>(context, listen: false).fetchUserData();
-    tz.initializeTimeZones();
   }
+
   Future<void> signOutUser(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => HomePageWidget()),
     );
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -152,8 +153,7 @@ class _InitialPageState extends State<InitialPage> {
         //backgroundColor: Colors.blueGrey,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.white54,
+        selectedItemColor: Colors.white,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,//color for the icon when that current page is being displayed
         items: [
@@ -164,10 +164,11 @@ class _InitialPageState extends State<InitialPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.post_add),
             label: 'New Post',
+
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Following',
+              icon: Icon(Icons.people),
+              label: 'Following'
           ),
         ],
       ),
