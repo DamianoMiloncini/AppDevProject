@@ -76,6 +76,8 @@ flutter:
   assets:
     - assets/gymphoto.jpg
     - assets/lottie/anim5.json
+    - assets/lottie/splashAnimation.json
+    - assets/lottie/anim10.json
     - assets/profile_pictures/1.jpg
     - assets/profile_pictures/2.jpg
     - assets/profile_pictures/3.jpg
