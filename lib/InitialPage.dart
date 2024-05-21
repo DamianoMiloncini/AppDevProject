@@ -19,7 +19,7 @@ import 'Session.dart'; // Import the user provider
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-   await Firebase.initializeApp(
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(
@@ -53,13 +53,13 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       //theme
       theme: ThemeData(
-        appBarTheme: AppBarTheme(
-            color: Colors.blueGrey,
-            centerTitle: true,
-            titleTextStyle: TextStyle(color: Colors.white)
-        ),
-        drawerTheme: DrawerThemeData(backgroundColor: Colors.blueGrey,),
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(backgroundColor: Colors.blueGrey)
+          appBarTheme: AppBarTheme(
+              color: Colors.blueGrey,
+              centerTitle: true,
+              titleTextStyle: TextStyle(color: Colors.white)
+          ),
+          drawerTheme: DrawerThemeData(backgroundColor: Colors.blueGrey,),
+          bottomNavigationBarTheme: BottomNavigationBarThemeData(backgroundColor: Colors.blueGrey)
       ),
       home: AuthWrapper(),
       darkTheme: ThemeData.dark(), //set what dark theme is
@@ -189,11 +189,18 @@ class _InitialPageState extends State<InitialPage> {
               //for now, this is HardCoded but fetch from database later on !!
               accountName: Text(userProvider.user!.username),
               accountEmail: Text(userProvider.user!.email),
-              currentAccountPicture: //should we allow the user to upload their picture? Should we give the user options of profile pictures to choose from ?,
-              CircleAvatar(
-                backgroundColor: Colors.blueAccent,
-                foregroundColor: Colors.lightGreen,
-                child: Text('M',style: TextStyle(fontSize: 30),),
+              currentAccountPicture:
+              Container(
+                width: 50,
+                height: 50,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                ),
+                child: Image.asset(
+                  'assets/profile_pictures/${userProvider.user!.pfp}.jpg',
+                  fit: BoxFit.fitWidth,
+                ),
               ),
             ),
             //account tile
@@ -261,7 +268,6 @@ class _InitialPageState extends State<InitialPage> {
     );
   }
 }
-
 
 
 

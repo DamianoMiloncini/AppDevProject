@@ -9,6 +9,7 @@ import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'InitialPage.dart';
+import 'logIn.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,7 +52,7 @@ class _CreateAccountState extends State<CreateAccount> {
   CollectionReference users = FirebaseFirestore.instance.collection('users');
 
 
-  Future<void> registerUser(String email, String username, String password) async {
+  Future<void> registerUser(String email, String username, String password, String image_selected) async {
     try {
       // Create a user with email and password
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -81,6 +82,7 @@ class _CreateAccountState extends State<CreateAccount> {
         'uid': user?.uid,
         'username': username,
         'email': email,
+        'pfp': image_selected,
         // Never store passwords in Firestore
       });
 
@@ -152,11 +154,12 @@ class _CreateAccountState extends State<CreateAccount> {
 
 
 
-
+String image_selected = "1";
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: Scaffold(
             body: Center(
                 child: Container(
@@ -164,7 +167,7 @@ class _CreateAccountState extends State<CreateAccount> {
                     child: Column(
                       children: [
                         Padding(
-                          padding: EdgeInsets.fromLTRB(20, 100, 0, 45),
+                          padding: EdgeInsets.fromLTRB(20, 80, 0, 35),
                           child: Row(
                             children: [
                               Icon(
@@ -192,7 +195,7 @@ class _CreateAccountState extends State<CreateAccount> {
                           style: TextStyle(
                             color: Colors.white,
                             fontFamily: 'Outfit',
-                            fontSize: 32,
+                            fontSize: 25,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -205,85 +208,132 @@ class _CreateAccountState extends State<CreateAccount> {
                             fontWeight: FontWeight.w400,
                           ),
                         ),
-                        TextFormField(
-                            style: TextStyle(
-                                color: Colors.white
-                            ),
-                            controller: email,
-                            decoration: InputDecoration(
-                              labelText: 'Email',
-                              labelStyle: TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'Readex Pro',
-                                letterSpacing: 0,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Colors.white10,
-                                  width: 2,
+                        Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                    style: TextStyle(
+                                        color: Colors.white
+                                    ),
+                                    controller: email,
+                                    decoration: InputDecoration(
+                                      labelText: 'Email',
+                                      labelStyle: TextStyle(
+                                        color: Colors.white30,
+                                        fontFamily: 'Readex Pro',
+                                        letterSpacing: 0,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.white10,
+                                          width: 1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    )
                                 ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            )
-                        ),
-                        SizedBox(height: 10,),
-                        TextFormField(
-                            style: TextStyle(
-                                color: Colors.white
-                            ),
-                            controller: username,
-                            decoration: InputDecoration(
-                              labelText: 'Username',
-                              labelStyle: TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'Readex Pro',
-                                letterSpacing: 0,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Colors.white10,
-                                  width: 2,
+                                SizedBox(height: 10,),
+                                TextFormField(
+                                    style: TextStyle(
+                                        color: Colors.white
+                                    ),
+                                    controller: username,
+                                    decoration: InputDecoration(
+                                      labelText: 'Username',
+                                      labelStyle: TextStyle(
+                                        color: Colors.white30,
+                                        fontFamily: 'Readex Pro',
+                                        letterSpacing: 0,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.white10,
+                                          width: 1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    )
                                 ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            )
-                        ),
-                        SizedBox(height: 10),
-                        TextFormField(
-                            style: TextStyle(
-                              color: Colors.white,
-                            ),
-                            controller: password,
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              labelStyle: TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'Readex Pro',
-                                letterSpacing: 0,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Colors.white10,
-                                  width: 2,
+                                SizedBox(height: 10),
+                                TextFormField(
+                                  obscureText: true,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                    controller: password,
+                                    decoration: InputDecoration(
+                                      labelText: 'Password',
+                                      labelStyle: TextStyle(
+                                        color: Colors.white30,
+                                        fontFamily: 'Readex Pro',
+                                        letterSpacing: 0,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.white10,
+                                          width: 1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    )
                                 ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            )
+                              ],
+                            ),
                         ),
-                        SizedBox(height: 10,),
+
+                        SizedBox(height: 5,),
                         Text(
                           _errorMessage,
                           style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 15,
                               fontWeight: FontWeight.bold,
                               color: Colors.red
                           ),
                         ),
+                        SizedBox(height: 10,),
+                        Text('Choose your profile picture:', style: TextStyle(color: Colors.white, fontSize: 18),),
+                        SizedBox(height: 15,),
+                        ProfilePictureSelection(
+                          onPictureSelected: (index) {
+                            // Update image_selected when a picture is selected
+                            image_selected = index.toString();
+                          },
+                        ),
+                        SizedBox(height: 25,),
                         ElevatedButton(
                           onPressed: () {
-                            registerUser(email.text, username.text, password.text);
+                            if(email.text.isEmpty || username.text.isEmpty || password.text.isEmpty){
+                              setState(() {
+                                _errorMessage = "Please fill in all fields";
+                              });
+                            }
+                            else{
+                              registerUser(email.text, username.text, password.text, image_selected);
+                            }
+
                           },
-                          child: Text('Create Account'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromRGBO(20, 24, 27, 1),
+                            padding: EdgeInsetsDirectional.fromSTEB(32, 15, 32, 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5), // Adjust the radius as needed
+                              side: BorderSide(
+                                color: Colors.white10,
+                                width: 1,
+                              )
+                            ),
+                          ),
+                          child: Text('Create Account', style: TextStyle(color: Colors.white),),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => HomePageWidget())
+                            );
+                          },
+                          child: Text('Already have an account', style: TextStyle(color: Colors.deepOrangeAccent, fontSize: 12),),
                         ),
 
                       ],
@@ -292,6 +342,64 @@ class _CreateAccountState extends State<CreateAccount> {
 
             )
         )
+    );
+  }
+}
+
+class ProfilePictureSelection extends StatefulWidget {
+  final Function(int) onPictureSelected;
+
+  ProfilePictureSelection({required this.onPictureSelected});
+
+  @override
+  _ProfilePictureSelectionState createState() => _ProfilePictureSelectionState();
+}
+
+class _ProfilePictureSelectionState extends State<ProfilePictureSelection> {
+  int selectedIndex = -1;
+
+  void _onPictureTap(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+
+    // Call the callback function with the selected index
+    widget.onPictureSelected(index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildProfilePicture(1, "assets/profile_pictures/1.jpg"),
+        _buildProfilePicture(2, "assets/profile_pictures/2.jpg"),
+        _buildProfilePicture(3, "assets/profile_pictures/3.jpg"),
+      ],
+    );
+  }
+
+  Widget _buildProfilePicture(int index, String assetPath) {
+    bool isSelected = selectedIndex == index;
+    return GestureDetector(
+      onTap: () => _onPictureTap(index),
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.transparent,
+            width: 2.0,
+          ),
+        ),
+        child: ClipOval(
+          child: Image.asset(
+            assetPath,
+            width: 115,
+            height: 115,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
     );
   }
 }
