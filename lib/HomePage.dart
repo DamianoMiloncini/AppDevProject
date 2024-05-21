@@ -100,7 +100,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: _selectedData == null
           ? _HomePage2(_postStream, _toggleContent)
-          : _DetailsPost(_selectedData!),
+          : _DetailsPost(_selectedData!), //if the selected data is not null, show this view
     );
   }
 
@@ -162,7 +162,7 @@ class _HomePageState extends State<HomePage> {
                             padding: EdgeInsets.symmetric(vertical: 10),
                             child: ElevatedButton(
                               onPressed: () {
-                                toggleContent(data);
+                                _toggleContent(data);
                               },
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
@@ -225,10 +225,6 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                           TextButton(
                                             onPressed: () {},
-                                            child: Icon(Icons.bookmark_add_outlined),
-                                          ),
-                                          TextButton(
-                                            onPressed: () {},
                                             child: Icon(Icons.share),
                                           ),
                                         ],
@@ -257,51 +253,138 @@ class _HomePageState extends State<HomePage> {
     DateTime date = timestamp.toDate();
     var exercises = data['exercises'];
 
-    Widget printExercises() {
-      return ListView.builder(
-        shrinkWrap: true,
-        itemCount: exercises.length,
-        itemBuilder: (BuildContext context, int index) {
-          var exercise = exercises[index];
-          var sets = exercise['sets'];
-          return Column(
-            children: [
-              Text('Muscle Target: ${exercise['muscle']}'),
-              Text('Exercise: ${exercise['name']}'),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: sets.length,
-                itemBuilder: (BuildContext context2, int index2) {
-                  var set = sets[index2];
-                  return Column(
-                    children: [
-                      Text('Set ${set['set']}'),
-                      Text('Lbs: ${set['lbs']}'),
-                      Text('Reps: ${set['reps']}'),
-                    ],
-                  );
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
+    return SingleChildScrollView(
+      child: Container(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  data['title'],
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 32),
+                ),
+                Text(
+                  '${date.year}-${date.month}-${date.day}  ${date.hour}:${date.minute} ',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            Text(
+              data['description'],
+              style: TextStyle(fontSize: 18),
+            ),
+            SizedBox(height: 10),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: exercises.length,
+              itemBuilder: (BuildContext context, int index) {
+                var exercise = exercises[index];
+                var sets = exercise['sets'];
 
-    return Container(
-      padding: EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(data['title'], style: TextStyle(fontWeight: FontWeight.w500, fontSize: 32)),
-          Text('${date.year}-${date.month}-${date.day}  ${date.hour}:${date.minute} '),
-          SizedBox(height: 20,),
-          Text(data['description']),
-          printExercises(),
-        ],
+                //Exercise card
+                Widget exerciseCard = Card(
+
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: Container(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${exercise['muscle']}',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          '${exercise['name']}',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: sets.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            var set = sets[index];
+                            return Container(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Set ${set['set']}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.fitness_center, color: Colors.green),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        '${set['lbs']} lbs',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Icon(Icons.replay, color: Colors.orange),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        '${set['reps']} reps',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.orange,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+                return exerciseCard;
+              },
+            ),
+            SizedBox(height: 10),
+            // Back home button
+            ElevatedButton(
+              onPressed: () {
+                _toggleContent(null); //Navigate back to the previous widget (HomePage)
+              },
+              child: Text('Back'),
+            ),
+          ],
+        ),
       ),
     );
   }
+
 }
 
 
