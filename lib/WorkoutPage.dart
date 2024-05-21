@@ -24,73 +24,109 @@ class WorkoutPage extends StatelessWidget {
         body: Center(
             child: Container(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Quick Start',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    ElevatedButton(
-                        onPressed: (){
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => Post()),
-                          );
-                        },
-                        child: Row(
+                    Padding(
+                        padding: EdgeInsets.all(15),
+                      child: Container(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.add, color: Colors.blueAccent,),
-                            SizedBox(width: 5,),
-                            Text('Start Empty Workout',
+                            Text('Quick Start',
                               style: TextStyle(
-                                  color: Colors.blue
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold
                               ),
                             ),
+                            ElevatedButton(
+                                onPressed: (){
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => Post()),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5), // Adjust the radius as needed
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.add, color: Colors.blueAccent,),
+                                    SizedBox(width: 5,),
+                                    Text('Start Empty Workout',
+                                      style: TextStyle(
+                                          color: Colors.blue
+                                      ),
+                                    ),
+                                  ],
+                                )
+                            ),
+                            SizedBox(height: 10,),
+                            Text('Routines',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => CreateRoutine()),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+
+                                    padding: EdgeInsetsDirectional.fromSTEB(47, 15, 47, 15),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5), // Adjust the radius as needed
+                                    ),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.list_alt_outlined, color: Colors.blue),
+                                      Text(
+                                        'New Routine',
+                                        style: TextStyle(color: Colors.blue),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => ExploreRoutines()),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: EdgeInsetsDirectional.fromSTEB(32, 15, 32, 15),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5), // Adjust the radius as needed
+                                      ),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(Icons.search, color: Colors.blue),
+                                        Text('Explore Routines',
+                                        style: TextStyle(
+                                            color: Colors.blue
+                                        ),),
+                                      ],
+                                    )
+                                )
+                              ],
+                            )
                           ],
-                        )
-                    ),
-                    SizedBox(height: 10,),
-                    Text('Routines',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        ElevatedButton(
-                            onPressed: (){
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => CreateRoutine()),
-                              );
-                            },
-                            child: Column(
-                              children: [
-                                Icon(Icons.list_alt_outlined),
-                                Text('New Routine'),
-                              ],
-                            )
                         ),
-                        ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => ExploreRoutines()),
-                              );
-                            },
-                            child: Column(
-                              children: [
-                                Icon(Icons.search),
-                                Text('Explore Routines'),
-                              ],
-                            )
-                        )
-                      ],
+                      ),
                     )
+
                   ],
                 )
             )

@@ -49,6 +49,7 @@ class _ExerciseSelectionState extends State<ExerciseSelection> {
       print('Failed to fetch exercises: ${response.statusCode}');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
