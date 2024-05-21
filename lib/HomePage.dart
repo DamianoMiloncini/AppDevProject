@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
 
   //Map to store user IDs and corresponding usernames
   Map<String, String> _usernames = {};
+  Map<String, String> _pfp = {};
 
   @override
   void initState() {
@@ -59,6 +60,28 @@ class _HomePageState extends State<HomePage> {
         print('Error fetching username: $e');
         setState(() {
           _usernames[uid] = 'Unknown';
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchPFP(String uid) async {
+    if (!_pfp.containsKey(uid)) {
+      try {
+        DocumentSnapshot userDoc = await _userCollection.doc(uid).get();
+        if (userDoc.exists) {
+          setState(() {
+            _pfp[uid] = userDoc.get('pfp') ?? '1'; //if cannot be found, put unknown user
+          });
+        } else {
+          setState(() {
+            _pfp[uid] = '1';
+          });
+        }
+      } catch (e) {
+        print('Error fetching profile picture: $e');
+        setState(() {
+          _pfp[uid] = '1';
         });
       }
     }
@@ -128,6 +151,7 @@ class _HomePageState extends State<HomePage> {
 
                     //Fetch the username for each post
                     _fetchUsername(uid);
+                    _fetchPFP(uid);
 
                     Timestamp timestamp = data['timestamp'];
                     DateTime date = timestamp.toDate();
@@ -161,8 +185,8 @@ class _HomePageState extends State<HomePage> {
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                           ),
-                                          child: Image.network(
-                                            'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlcnxlbnwwfHwwfHx8MA%3D%3D',
+                                          child: Image.asset(
+                                            'assets/profile_pictures/${_pfp[uid]}.jpg',
                                             fit: BoxFit.fitWidth,
                                           ),
                                         ),

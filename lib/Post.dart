@@ -44,14 +44,13 @@ class _PostState extends State<Post> {
   }
 
   List<Map<String, dynamic>> selectedExercises = [];
-  //add post to Firebase
-  //used to perform operations
+
   CollectionReference posts = FirebaseFirestore.instance.collection('posts');
   Future<void> addPost(uid) {
     //customize the name of the document so that its not a random ass string
-    DocumentReference newPosts = posts.doc(_title.text);
-    return newPosts.set({
-      //add the photo link later
+    DocumentReference post = posts.doc();
+    return post.set({
+      'id': post.id,
       'uid': uid,
       'title': _title.text,
       'description': _description.text,
@@ -62,6 +61,8 @@ class _PostState extends State<Post> {
         .catchError((error) => print('failed to add the posts to firebase $error')
     );
   }
+
+
   @override
   Widget build(BuildContext context) {
     UserProvider userProvider = Provider.of<UserProvider>(context);

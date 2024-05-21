@@ -6,11 +6,13 @@ class UserModel {
   final String uid;
   final String username;
   final String email;
+  final String pfp;
 
   UserModel({
     required this.uid,
     required this.username,
     required this.email,
+    required this.pfp,
   });
 }
 
@@ -29,6 +31,7 @@ class UserProvider with ChangeNotifier {
           uid: currentUser.uid,
           username: doc['username'],
           email: doc['email'],
+          pfp: doc['pfp'],
         );
         notifyListeners();
       }
