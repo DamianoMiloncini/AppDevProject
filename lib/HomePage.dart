@@ -259,9 +259,6 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
                 Text(
                   data['title'],
                   style: TextStyle(fontWeight: FontWeight.w500, fontSize: 32),
@@ -270,8 +267,7 @@ class _HomePageState extends State<HomePage> {
                   '${date.year}-${date.month}-${date.day}  ${date.hour}:${date.minute} ',
                   style: TextStyle(color: Colors.grey),
                 ),
-              ],
-            ),
+
             SizedBox(height: 20),
             Text(
               data['description'],
@@ -288,7 +284,6 @@ class _HomePageState extends State<HomePage> {
 
                 //Exercise card
                 Widget exerciseCard = Card(
-
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

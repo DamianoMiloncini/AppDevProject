@@ -15,18 +15,21 @@ class Comments extends StatefulWidget {
 class _CommentsState extends State<Comments> {
   //controllers
   TextEditingController _comment = TextEditingController();
-  final CollectionReference _commentsCollection = FirebaseFirestore.instance.collection('comments');
+  final CollectionReference _commentsCollection = FirebaseFirestore.instance
+      .collection('comments');
   late UserProvider userProvider;
+
   //methods
 
   //add comment to firebase
   Future <void> addComments(String postID, String comment, String uid) {
     return _commentsCollection.add({
-      'postID' : postID,
-      'uid' : uid,
-      'comment' : comment,
-      'timestamp' : DateTime.now(),
-    }).then((value) => print('comment added to firebase')).catchError((error) => print('Failed to add the comment to firebase $error'));
+      'postID': postID,
+      'uid': uid,
+      'comment': comment,
+      'timestamp': DateTime.now(),
+    }).then((value) => print('comment added to firebase')).catchError((error) =>
+        print('Failed to add the comment to firebase $error'));
   }
 
   //display comments
@@ -63,6 +66,7 @@ class _CommentsState extends State<Comments> {
       ],
     );
   }
+
   //Map to store user IDs and corresponding usernames
   Map<String, String> _usernames = {};
   Map<String, String> _pfp = {};
@@ -113,7 +117,7 @@ class _CommentsState extends State<Comments> {
     }
   }
   Stream<QuerySnapshot> _commentsStream =
-  FirebaseFirestore.instance.collection('comments').snapshots();
+  FirebaseFirestore.instance.collection('comments').orderBy('timestamp',descending: false).snapshots();
   @override
   Widget build(BuildContext context) {
     userProvider = Provider.of<UserProvider>(context);
@@ -132,7 +136,7 @@ class _CommentsState extends State<Comments> {
                   return Center(child: CircularProgressIndicator());
                 }
                 //filter the results by the matching postID:
-                List<DocumentSnapshot> matchingDocs = snapshot.data!.docs.where((doc) => doc['postID'] == widget.data['title']).toList();
+                List<DocumentSnapshot> matchingDocs = snapshot.data!.docs.where((doc) => doc['postID'] == widget.data['id']).toList();
                 if (matchingDocs.isEmpty) {
                   return Text('Be the first one to comment !');
                 }
@@ -181,13 +185,13 @@ class _CommentsState extends State<Comments> {
                             ],
                           ),
 
-                        trailing:Text(
+                        trailing: Expanded(child: Text(
                           '${date.year}-${date.month}-${date.day}  ${date.hour}:${date.minute}',
                           style: TextStyle(
                             color: Colors.grey,
                             fontSize: 12.0,
                           ),
-                        ),
+                        ),)
                       ),
                     );
                   }).toList(),
@@ -216,7 +220,7 @@ class _CommentsState extends State<Comments> {
                 ElevatedButton(
                   onPressed: () {
                     // Add the new comment
-                    addComments(widget.data['title'], _comment.text, userProvider.user!.uid);
+                    addComments(widget.data['id'], _comment.text, userProvider.user!.uid);
                     _comment.text = '';
                   },
                   child: Text('Add Comment'),

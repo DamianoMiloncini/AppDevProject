@@ -54,7 +54,8 @@ class _AccountState extends State<Account> {
   Map<String, String> _pfp = {};
   final CollectionReference _userCollection =
       FirebaseFirestore.instance.collection('users');
-
+  final CollectionReference _commentsCollection =
+  FirebaseFirestore.instance.collection('comments');
   //Method to fetch username by user ID
   Future<void> _fetchUsername(String uid) async {
     if (!_usernames.containsKey(uid)) {
@@ -120,9 +121,16 @@ class _AccountState extends State<Account> {
 
   Future<void> deletePost(String postId) async {
         try {
-          await _postCollection.doc(postId).delete();
+          // Reference to the comments collection
+          QuerySnapshot commentsQuery = await _commentsCollection.where('postID', isEqualTo: postId).get();
+          print('Comments to delete: ${commentsQuery.docs.length}');
+          // Delete each comment associated with the post
+          for (var commentDoc in commentsQuery.docs) {
+            await commentDoc.reference.delete();
+          }
+            await _postCollection.doc(postId).delete();
           setState(() {
-            _userPosts.removeWhere((post) => post['title'] == postId);
+            _userPosts.removeWhere((post) => post['id'] == postId);
           });
         }
         catch (error) {
@@ -296,7 +304,7 @@ class _AccountState extends State<Account> {
                   Timestamp timestamp = post['timestamp'];
                   DateTime date = timestamp.toDate();
                   String uid = post['uid'];
-                  String postID = post['title'];
+                  String postID = post['id'];
 
                   //Fetch the username for each post
                   _fetchUsername(uid);
@@ -394,7 +402,8 @@ class _AccountState extends State<Account> {
                         child: TextButton(onPressed: () {
                           deletePost(postID);
                       }, child: Icon(Icons.delete),
-                      ),)
+                      ),
+                      ),
                     ],
                   );
                 }).toList(),
