@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +18,7 @@ class Account extends StatefulWidget {
 }
 
 class _AccountState extends State<Account> {
+
   double BMI = 0;
   double _height = 0;
   double weight = 0;

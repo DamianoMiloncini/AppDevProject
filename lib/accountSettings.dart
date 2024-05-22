@@ -1,22 +1,9 @@
 import 'package:evolve/InitialPage.dart';
 import 'package:flutter/material.dart';
 import 'Session.dart';
-import 'dart:convert';
-// import 'dart:html';
-import 'dart:io';
 import 'package:evolve/SplashScreen.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'firebase_options.dart';
-import 'HomePage.dart';
-import 'Post.dart';
-import 'CreateRoutine.dart';
-import 'WorkoutPage.dart';
-import 'Account.dart';
-import 'logIn.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'ChangePassword.dart';
@@ -111,7 +98,6 @@ class _AccountSettingsState extends State<AccountSettings> {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Color.fromRGBO(20, 24, 27, 1),
                               padding: EdgeInsetsDirectional.fromSTEB(22, 5, 22, 5),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5), // Adjust the radius as needed

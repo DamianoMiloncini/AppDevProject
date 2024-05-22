@@ -24,14 +24,16 @@ class _NutritionTrackerState extends State<NutritionTracker> {
 
   Future<void> _initSharedPreferences() async {
     _prefs = await SharedPreferences.getInstance();
-    _loadNutritionData(); // i had a stupid mistake here took me forever to see it
+    _checkDateAndLoadData();
   }
 
   Future<void> _saveNutritionData() async {
     List<Map<String, dynamic>> nutritionData =
     _addedNutrients.map((nutrition) => nutrition.toJson()).toList();
+    String currentDate = DateTime.now().toIso8601String(); //formatted version its weird looking ngl
 
     await _prefs.setString('nutrition_data', jsonEncode(nutritionData));
+    await _prefs.setString('last_save_date', currentDate);
   }
 
   Future<void> _loadNutritionData() async {
@@ -44,6 +46,27 @@ class _NutritionTrackerState extends State<NutritionTracker> {
       setState(() {
         _addedNutrients = loadedNutrients;
       });
+    }
+  }
+
+  //method to make the the data delete daily
+  Future<void> _checkDateAndLoadData() async {
+    String? lastSaveDateStr = _prefs.getString('last_save_date');
+    if (lastSaveDateStr != null) {
+      DateTime lastSaveDate = DateTime.parse(lastSaveDateStr);
+      DateTime currentDate = DateTime.now();
+
+      if (currentDate.difference(lastSaveDate).inDays >= 1) {
+        await _prefs.remove('nutrition_data');
+        await _prefs.remove('last_save_date');
+        setState(() {
+          _addedNutrients = [];
+        });
+      } else {
+        _loadNutritionData();
+      }
+    } else {
+      _loadNutritionData();
     }
   }
 
@@ -165,7 +188,7 @@ class _NutritionTrackerState extends State<NutritionTracker> {
                 explodeIndex: 0, //Index of the slice to explode
                 explodeOffset: '10%', //Offset of the exploded slice
                 radius: '90%', //Adjust the size of the pie chart
-                startAngle: 90, // tart angle of the first slice
+                startAngle: 90, //Start angle of the first slice
                 endAngle: 450, //End angle of the last slice
                 dataLabelSettings: DataLabelSettings(
                   isVisible: true,
@@ -213,5 +236,4 @@ class _NutritionTrackerState extends State<NutritionTracker> {
       ],
     );
   }
-
 }

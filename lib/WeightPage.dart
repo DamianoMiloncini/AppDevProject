@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -43,31 +42,24 @@ class _WeightPageState extends State<WeightPage> {
   TextEditingController _weight = TextEditingController();
   final CollectionReference _userCollection = FirebaseFirestore.instance.collection('users');
   String formattedDate = '${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}';
-  //add weight to user in firebase
+  double height = 0;
   Future <void> addWeight(String userID, double weight) async {
     try {
-      //take the document where the user id = the user id passed in the parameter
       QuerySnapshot querySnapshot = await _userCollection.where('uid', isEqualTo: userID).get();
-
-      //check if there is a document with that id
       if (querySnapshot.docs.length > 0) {
-        //if yes, update the document with the weight
         DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
         await documentSnapshot.reference.update({
           'weight': weight
         });
-        print('weight added in the users document');
+        print('Weight added in the user\'s document');
+      } else {
+        print('Weight couldn\'t be added to the user\'s document');
       }
-      else {
-        print('weight couldnt be added to the users document');
-      }
+    } catch (error) {
+      print('Failed to update weight in Firebase: $error');
     }
-    catch (error){
-      print('Failed to update weight in firebase $error');
-    }
-
-
   }
+
   List<ChartData> chartData = [];
   late SharedPreferences _prefs;
   late UserProvider userProvider;
@@ -76,57 +68,81 @@ class _WeightPageState extends State<WeightPage> {
   @override
   void initState() {
     super.initState();
-    //clearSharedPreferences();
-    userProvider = Provider.of<UserProvider>(context, listen: false);// Initialize userProvider in initState
+    userProvider = Provider.of<UserProvider>(context, listen: false);
     getWeight();
+    getHeight();
     loadChartData();
   }
-  Future<void> clearSharedPreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    print('SharedPreferences cleared.');
-  }
+
   Future<void> getWeight() async {
     try {
-      //take the document where the user id = the user id passed in the parameter
       QuerySnapshot querySnapshot = await _userCollection.where('uid', isEqualTo: userProvider.user!.uid).get();
-      //check if there is a document with that id
       if (querySnapshot.docs.length > 0) {
-        //if yes, update the document with the weight
         DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
-        //get the weight
         setState(() {
           weight = documentSnapshot.get('weight') ?? 0;
         });
-        print('weight was successfully fetched');
+        print('Weight was successfully fetched');
+      } else {
+        print('Couldn\'t get the weight from Firebase');
       }
-      else {
-        print('couldnt get the weight from firebase');
+    } catch (error) {
+      print('Failed to get weight from Firebase: $error');
+    }
+  }
+  Future<void> addBMI(String userID, double bmi) async {
+    try {
+      QuerySnapshot querySnapshot = await _userCollection.where('uid', isEqualTo: userID).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+        await documentSnapshot.reference.update({
+          'BMI': bmi // Update with bmi parameter, not class variable BMI
+        });
+        print('BMI added in the user\'s document');
+      } else {
+        print('BMI couldn\'t be added to the user\'s document');
       }
+    } catch (error) {
+      print('Failed to update BMI in Firebase $error');
     }
-    catch (error){
-      print('Failed to update weight in firebase $error');
+  }
+  Future<void> getHeight() async {
+    try {
+      QuerySnapshot querySnapshot = await _userCollection.where('uid', isEqualTo: userProvider.user!.uid).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+        setState(() {
+          height = documentSnapshot.get('height') ?? 0;
+        });
+        print('Height was successfully fetched');
+      } else {
+        print('Couldn\'t get the Height from Firebase');
+      }
+    } catch (error) {
+      print('Failed to fetch Height from Firebase $error');
     }
+  }
+  double BMICalculation(double weight) {
+    double heightMeter = height * 0.3048;
+    double division = weight / (heightMeter * heightMeter);
+    return division;
   }
 
   Future<void> loadChartData() async {
-    _prefs = await SharedPreferences.getInstance(); // need this to store data so that when you switch pages and come back, the weight inputted before still shows
-    print(_prefs);
+    _prefs = await SharedPreferences.getInstance();
     if (_prefs.containsKey('chartWeightData')) {
       setState(() {
         final List<String> chartDataJson = _prefs.getStringList('chartWeightData')!;
         chartData = chartDataJson.map((json) => ChartData.fromJson(json)).toList();
       });
     } else {
-      // Initialize with default data
       setState(() {
         chartData = [
           ChartData('2024-01-01', weight),
-        ChartData('Jan', 35),
-        ChartData('Feb', 28),
-        ChartData('Mar', 34),
-        ChartData('Apr', 32),
-
+          ChartData('2024-02-04', 35),
+          ChartData('2024-02-05', 28),
+          ChartData('2024-02-08', 34),
+          ChartData('2024-03-05', 32),
         ];
       });
     }
@@ -141,52 +157,78 @@ class _WeightPageState extends State<WeightPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Weight Page'),
+        title: Text('Weight Page', style: TextStyle(fontFamily: 'Comic Sans MS', color: Colors.white)),
+        backgroundColor: Colors.blueGrey,
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TextField(
-            controller: _weight,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              hintText: 'Enter your weight',
-              contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(8.0)),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextField(
+              controller: _weight,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                hintText: 'Enter your weight',
+                hintStyle: TextStyle(fontFamily: 'Comic Sans MS', color: Colors.grey),
+                contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16.0)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blueGrey),
+                  borderRadius: BorderRadius.all(Radius.circular(16.0)),
+                ),
+                suffixIcon: Icon(Icons.monitor_weight, color: Colors.blueGrey),
+              ),
+              style: TextStyle(fontFamily: 'Comic Sans MS', color: Colors.purple),
+            ),
+            SizedBox(height: 20.0),
+            ElevatedButton.icon(
+              onPressed: () {
+                if (_weight.text.isNotEmpty) {
+                  double bmi = BMICalculation(double.parse(_weight.text));
+                  setState(() {
+                    addWeight(userProvider.user!.uid, double.parse(_weight.text));
+                    addBMI(userProvider.user!.uid, bmi);
+                    chartData.add(ChartData(formattedDate, double.parse(_weight.text)));
+                    _weight.text = '';
+                    saveChartData();
+                  });
+                }
+              },
+              icon: Icon(Icons.update, color: Colors.white),
+              label: Text('Update Weight', style: TextStyle(fontFamily: 'Comic Sans MS')),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.blueGrey,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 10.0),
-          ElevatedButton(
-            onPressed: () {
-              if (_weight.text.isNotEmpty) {
-                setState(() {
-                  //add weight to a specific user
-                  addWeight(userProvider.user!.uid, double.parse(_weight.text));
-                  // Add the weight to chart data
-                  chartData.add(ChartData(formattedDate, double.parse(_weight.text)));
-                  _weight.text = '';
-                  saveChartData(); // Save chart data after modification
-                });
-              }
-            },
-            child: Text('Update Weight'),
-          ),
-          //SizedBox(height: 20.0),
-                SfCartesianChart(
-                primaryXAxis: CategoryAxis(), // Use CategoryAxis for categorical data (months)
+            SizedBox(height: 20.0),
+            Expanded(
+              child: SfCartesianChart(
+                primaryXAxis: CategoryAxis(),
                 series: <CartesianSeries>[
-                  // Renders line chart
                   LineSeries<ChartData, String>(
                     dataSource: chartData,
                     xValueMapper: (ChartData data, _) => data.month,
                     yValueMapper: (ChartData data, _) => data.weight,
-                  )
+                    markerSettings: MarkerSettings(isVisible: true, color: Colors.white, shape: DataMarkerType.circle),
+                    color: Colors.deepPurpleAccent,
+                  ),
                 ],
+                title: ChartTitle(
+                  text: 'Weight Over Time',
+                  textStyle: TextStyle(fontFamily: 'Comic Sans MS', color: Colors.blueGrey),
+                ),
+                legend: Legend(isVisible: true, position: LegendPosition.bottom, textStyle: TextStyle(fontFamily: 'Comic Sans MS', color: Colors.purple)),
+                tooltipBehavior: TooltipBehavior(enable: true, format: 'point.x : point.y kg'),
               ),
-
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

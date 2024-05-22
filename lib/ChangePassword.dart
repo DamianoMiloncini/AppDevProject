@@ -89,7 +89,6 @@ class _ChangePasswordState extends State<ChangePassword> {
               Text(
                 'Please fill in the following fields.',
                 style: TextStyle(
-                  color: Colors.white24,
                   fontFamily: 'Outfit',
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
@@ -107,13 +106,13 @@ class _ChangePasswordState extends State<ChangePassword> {
                         decoration: InputDecoration(
                           labelText: 'Current Password',
                           labelStyle: TextStyle(
-                            color: Colors.white,
+                            //color: Colors.white,
                             fontFamily: 'Readex Pro',
                             letterSpacing: 0,
+
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: Colors.white10,
                               width: 1,
                             ),
                             borderRadius: BorderRadius.circular(12),
@@ -128,13 +127,11 @@ class _ChangePasswordState extends State<ChangePassword> {
                         decoration: InputDecoration(
                           labelText: 'New Password',
                           labelStyle: TextStyle(
-                            color: Colors.white,
                             fontFamily: 'Readex Pro',
                             letterSpacing: 0,
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: Colors.white10,
                               width: 1,
                             ),
                             borderRadius: BorderRadius.circular(12),
@@ -165,7 +162,6 @@ class _ChangePasswordState extends State<ChangePassword> {
               ElevatedButton(
                 onPressed: _changePassword,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromRGBO(20, 24, 27, 1),
                   padding: EdgeInsetsDirectional.fromSTEB(32, 15, 32, 15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5),

@@ -38,7 +38,7 @@ class BMIPage extends StatefulWidget {
 }
 
 class _BMIPageState extends State<BMIPage> {
-  double _height = 6; // HARDCODED FOR NOW
+  double _height = 0; // HARDCODED FOR NOW
   double weight = 0;
   late UserProvider userProvider;
   final CollectionReference _userCollection = FirebaseFirestore.instance.collection('users');
@@ -49,7 +49,8 @@ class _BMIPageState extends State<BMIPage> {
   @override
   void initState() {
     super.initState();
-    //clearSharedPreferences();
+    userProvider = Provider.of<UserProvider>(context, listen: false);
+    getHeight();
     loadChartData();
   }
 
@@ -75,6 +76,22 @@ class _BMIPageState extends State<BMIPage> {
       print('Failed to fetch weight from Firebase $error');
     }
   }
+  Future<void> getHeight() async {
+    try {
+      QuerySnapshot querySnapshot = await _userCollection.where('uid', isEqualTo: userProvider.user!.uid).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+        setState(() {
+          _height = documentSnapshot.get('height') ?? 0;
+        });
+        print('Height was successfully fetched');
+      } else {
+        print('Couldn\'t get the Height from Firebase');
+      }
+    } catch (error) {
+      print('Failed to fetch Height from Firebase $error');
+    }
+  }
 
   Future<void> addBMI(String userID, double bmi) async {
     try {
@@ -92,13 +109,28 @@ class _BMIPageState extends State<BMIPage> {
       print('Failed to update BMI in Firebase $error');
     }
   }
+  Future<void> addHeight(String userID) async {
+    try {
+      QuerySnapshot querySnapshot = await _userCollection.where('uid', isEqualTo: userID).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+        await documentSnapshot.reference.update({
+          'height': _height // Update with bmi parameter, not class variable BMI
+        });
+        print('BMI added in the user\'s document');
+      } else {
+        print('BMI couldn\'t be added to the user\'s document');
+      }
+    } catch (error) {
+      print('Failed to update BMI in Firebase $error');
+    }
+  }
 
   double BMICalculation() {
     double heightMeter = _height * 0.3048;
     double division = weight / (heightMeter * heightMeter);
     return division;
   }
-
   Future<void> loadChartData() async {
     _prefs = await SharedPreferences.getInstance();
     if (_prefs.containsKey('chartBMIData')) {
@@ -127,57 +159,77 @@ class _BMIPageState extends State<BMIPage> {
   Widget build(BuildContext context) {
     userProvider = Provider.of<UserProvider>(context); // Access UserProvider with listen: true
 
-    // Fetch weight whenever the userProvider changes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      getWeight(userProvider);
-    });
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('BMI Page'),
+        title: Text('BMI Page', style: TextStyle(fontFamily: 'Comic Sans MS', color: Colors.white)),
+        backgroundColor: Colors.blueGrey,
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('$_height', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          SizedBox(height: 5),
-          Text('Height (FT)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          SizedBox(height: 5),
-          Slider(
-            value: _height,
-            max: 7,
-            min: 0,
-            label: _height.round().toString(),
-            onChanged: (double value) {
-              setState(() {
-                _height = value;
-              });
-            },
-          ),
-          SizedBox(height: 10.0),
-          ElevatedButton(
-            onPressed: () {
-              double bmi = BMICalculation();
-              setState(() {
-                addBMI(userProvider.user!.uid, bmi);
-                chartData.add(ChartData(formattedDate, bmi));
-                saveChartData();
-              });
-            },
-            child: Text('Update BMI'),
-          ),
-             SfCartesianChart(
-              primaryXAxis: CategoryAxis(),
-              series: <CartesianSeries>[
-                LineSeries<ChartData, String>(
-                  dataSource: chartData,
-                  xValueMapper: (ChartData data, _) => data.month,
-                  yValueMapper: (ChartData data, _) => data.weight,
-                )
-              ],
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('$_height', style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold, fontSize: 24)),
+            SizedBox(height: 5),
+            Text('Height (FT)', style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold, fontSize: 16)),
+            SizedBox(height: 5),
+            Slider(
+              value: _height,
+              max: 7,
+              min: 0,
+              label: _height.round().toString(),
+              onChanged: (double value) {
+                setState(() {
+                  _height = value;
+                });
+              },
+              activeColor: Colors.deepPurpleAccent,
+              inactiveColor: Colors.purple.shade100,
             ),
-
-        ],
+            SizedBox(height: 10.0),
+            ElevatedButton.icon(
+              onPressed: () {
+                double bmi = BMICalculation();
+                setState(() {
+                  addBMI(userProvider.user!.uid, bmi);
+                  addHeight(userProvider.user!.uid);
+                  chartData.add(ChartData(formattedDate, bmi));
+                  saveChartData();
+                });
+              },
+              icon: Icon(Icons.update, color: Colors.white),
+              label: Text('Update BMI', style: TextStyle(fontFamily: 'Comic Sans MS')),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.blueGrey,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+              ),
+            ),
+            SizedBox(height: 20.0),
+            Expanded(
+              child: SfCartesianChart(
+                primaryXAxis: CategoryAxis(),
+                series: <CartesianSeries>[
+                  LineSeries<ChartData, String>(
+                    dataSource: chartData,
+                    xValueMapper: (ChartData data, _) => data.month,
+                    yValueMapper: (ChartData data, _) => data.weight,
+                    markerSettings: MarkerSettings(isVisible: true, color: Colors.white, shape: DataMarkerType.circle),
+                    color: Colors.blueGrey,
+                  ),
+                ],
+                title: ChartTitle(
+                  text: 'BMI Over Time',
+                  textStyle: TextStyle(fontFamily: 'Comic Sans MS', color: Colors.deepPurpleAccent),
+                ),
+                legend: Legend(isVisible: true, position: LegendPosition.bottom, textStyle: TextStyle(fontFamily: 'Comic Sans MS', color: Colors.deepPurpleAccent)),
+                tooltipBehavior: TooltipBehavior(enable: true, format: 'point.x : point.y'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
