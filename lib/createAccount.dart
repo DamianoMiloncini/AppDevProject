@@ -165,6 +165,7 @@ String image_selected = "1";
                 child: Container(
                     color: Color.fromRGBO(20, 24, 27, 1),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Padding(
                           padding: EdgeInsets.fromLTRB(20, 80, 0, 35),

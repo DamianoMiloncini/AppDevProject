@@ -83,6 +83,7 @@ class _PostFromRoutineState extends State<PostFromRoutine> {
       'description': _description.text,
       'timestamp': date,
       'exercises': exercises,
+      'likes': 0,
     })
         .then((value) => print('posts added to firebase'))
         .catchError((error) => print('failed to add the posts to firebase $error')

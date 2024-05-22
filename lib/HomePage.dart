@@ -257,7 +257,7 @@ class _HomePageState extends State<HomePage> {
                                             child: Row(
                                               crossAxisAlignment: CrossAxisAlignment.center,
                                               children: [
-                                                Icon(isLiked ? Icons.favorite : Icons.favorite_border),
+                                                Icon(Icons.favorite_outline),
                                                 SizedBox(width: 5,),
                                                 Text(data['likes'].toString(), style: TextStyle(fontSize: 16),),
                                               ],

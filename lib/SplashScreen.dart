@@ -24,24 +24,23 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSplashScreen(
-      duration: 4175, // Duration in milliseconds
+      duration: 4000, // Duration in milliseconds
       splash: Column(
         children: [
           Center(
             child: Column(
               children: [
-                //ColorFiltered(
-                  //colorFilter: ColorFilter.mode(
-                  //  Colors.white, // Change to the desired color
-                  //  BlendMode.srcIn,
-                  //),
-                  //child:
+                ColorFiltered(
+                  colorFilter: ColorFilter.mode(
+                   Colors.white, // Change to the desired color
+                   BlendMode.srcIn,
+                  ),
+                  child:
                   Lottie.network(
-                    "https://lottie.host/f8a35b2e-4a4d-4168-8bb0-0a6b543abd50/HjrOaH6wWk.json",
+                    "https://lottie.host/9bf9d12f-3772-4e39-9ef0-5fc89161a2e3/GqDZuR94Nu.json",
                     width: 300,
                   ),
-                //),
-                SizedBox(height: 35,),
+                ),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -72,8 +71,9 @@ class SplashScreen extends StatelessWidget {
         ],
       ),
       nextScreen: const HomePageWidget(),
-      splashIconSize: 400,
+      splashIconSize: 450,
       backgroundColor: Colors.white10,
+      splashTransition: SplashTransition.fadeTransition, // Use fade transition
     );
   }
 }

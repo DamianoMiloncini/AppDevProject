@@ -281,9 +281,10 @@ class _SignInPageState extends State<SignInPage> {
             child: Container(
                 color: Color.fromRGBO(20, 24, 27, 1),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Padding(
-                      padding: EdgeInsets.fromLTRB(20, 100, 0, 45),
+                      padding: EdgeInsets.fromLTRB(20, 0, 0, 50),
                       child: Row(
                         children: [
                           Icon(
@@ -352,6 +353,7 @@ class _SignInPageState extends State<SignInPage> {
                             ),
                             SizedBox(height: 10),
                             TextFormField(
+                              obscureText: true,
                                 style: TextStyle(
                                   color: Colors.white,
                                 ),
