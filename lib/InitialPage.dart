@@ -1,6 +1,7 @@
 import 'dart:convert';
 // import 'dart:html';
 import 'dart:io';
+import 'package:evolve/SplashScreen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -16,6 +17,7 @@ import 'logIn.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'Session.dart'; // Import the user provider
+import 'accountSettings.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -85,7 +87,7 @@ class AuthWrapper extends StatelessWidget {
         } else if (snapshot.hasData) {
           return InitialPage(); // Your home page widget
         } else {
-          return HomePageWidget(); // Your sign-in page widget
+          return SplashScreen(); // Your sign-in page widget
         }
       },
     );
@@ -162,13 +164,13 @@ class _InitialPageState extends State<InitialPage> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.post_add),
-            label: 'New Post',
+            icon: Icon(Icons.sports_gymnastics),
+            label: 'Workout',
 
           ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.people),
-              label: 'Following'
+              icon: Icon(Icons.person),
+              label: 'Profile'
           ),
         ],
       ),
@@ -184,7 +186,7 @@ class _InitialPageState extends State<InitialPage> {
             //TODO: You can change to your liking honestly
             UserAccountsDrawerHeader(
               decoration: BoxDecoration(
-                  color: Colors.white38
+                  color: Colors.blue
               ),
               //for now, this is HardCoded but fetch from database later on !!
               accountName: Text(userProvider.user!.username),
@@ -210,7 +212,9 @@ class _InitialPageState extends State<InitialPage> {
               title: const Text('Account Settings'),
               trailing: const Icon(Icons.arrow_forward),
               onTap: () {
-                //push to User settings page
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => AccountSettings()),
+                );
               },
             ),
             SizedBox(height: 10,),
@@ -236,7 +240,9 @@ class _InitialPageState extends State<InitialPage> {
                   MyApp.of(context).changeTheme(ThemeMode.dark);
                   Navigator.pop(context); //to close the drawer after the user clicks the button
                 },
+
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       //little moon
                       Icon(Icons.dark_mode_outlined),
@@ -246,22 +252,8 @@ class _InitialPageState extends State<InitialPage> {
                   ),
                 ),
 
-
               ],
             ),
-            ElevatedButton(onPressed: () async {
-              await signOutUser(context);
-            },
-              child: Row(
-                children: [
-                  //little moon
-                  Icon(Icons.dark_mode_outlined),
-                  SizedBox(width: 5,),
-                  Text('Sign Out')
-                ],
-              ),
-            ),
-
           ],
         ),
       ),

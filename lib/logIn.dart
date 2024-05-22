@@ -265,6 +265,9 @@ class _SignInPageState extends State<SignInPage> {
         );
       }
     } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = "Invalid email and/or password";
+      });
       print('Failed with error code: ${e.code}');
       print(e.message);
       // Handle sign-in errors here
@@ -321,63 +324,92 @@ class _SignInPageState extends State<SignInPage> {
                         fontWeight: FontWeight.w400,
                       ),
                     ),
-                    TextFormField(
-                        style: TextStyle(
-                            color: Colors.white
-                        ),
-                        controller: email,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          labelStyle: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'Readex Pro',
-                            letterSpacing: 0,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.white10,
-                              width: 2,
+                    Padding(
+                        padding: EdgeInsets.all(15),
+                      child: Container(
+                        child: Column(
+                          children: [
+                            TextFormField(
+                                style: TextStyle(
+                                    color: Colors.white
+                                ),
+                                controller: email,
+                                decoration: InputDecoration(
+                                  labelText: 'Email',
+                                  labelStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: 'Readex Pro',
+                                    letterSpacing: 0,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.white10,
+                                      width: 1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                )
                             ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        )
-                    ),
-                    SizedBox(height: 10),
-                    TextFormField(
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                        controller: password,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'Readex Pro',
-                            letterSpacing: 0,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.white10,
-                              width: 2,
+                            SizedBox(height: 10),
+                            TextFormField(
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                                controller: password,
+                                decoration: InputDecoration(
+                                  labelText: 'Password',
+                                  labelStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: 'Readex Pro',
+                                    letterSpacing: 0,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.white10,
+                                      width: 1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                )
                             ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        )
+                          ],
+                        ),
+                      ),
                     ),
-                    SizedBox(height: 10,),
                     Text(
                       _errorMessage,
                       style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Colors.red
                       ),
                     ),
+                    SizedBox(height: 15,),
                     ElevatedButton(
                       onPressed: () {
                         signInUser(email.text, password.text);
                       },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromRGBO(20, 24, 27, 1),
+                        padding: EdgeInsetsDirectional.fromSTEB(32, 15, 32, 15),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5), // Adjust the radius as needed
+                            side: BorderSide(
+                              color: Colors.white10,
+                              width: 1,
+                            )
+                        ),
+                      ),
                       child: Text('Log In'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => HomePageWidget())
+                        );
+                      },
+                      child: Text('Dont have an account', style: TextStyle(color: Colors.white24, fontSize: 12),),
                     ),
 
                   ],

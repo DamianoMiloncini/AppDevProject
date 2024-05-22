@@ -116,7 +116,7 @@ class _HomePageState extends State<HomePage> {
           Row(
             children: [
               Text(
-                'Hello,',
+                'Hello, ',
                 style: TextStyle(fontSize: 35),
               ),
               Text(
@@ -129,7 +129,7 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           Text(
-            'Your current progress of the day',
+            'Explore workouts',
             style: TextStyle(fontSize: 15, color: Colors.grey),
           ),
           StreamBuilder<QuerySnapshot>(
