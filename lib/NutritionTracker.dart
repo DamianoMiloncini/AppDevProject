@@ -174,7 +174,13 @@ class _NutritionTrackerState extends State<NutritionTracker> {
                 ),
                 pointColorMapper: (Nutrition data, _) => data.color,
                 xValueMapper: (Nutrition data, _) => data.nutrient,
-                yValueMapper: (Nutrition data, _) => data.calories.toDouble(),
+                yValueMapper: (Nutrition data, _) {
+                  final totalCalories = _addedNutrients.fold<double>(
+                    0,
+                        (sum, nutrient) => sum + nutrient.calories,
+                  );
+                  return data.calories / totalCalories * 100;
+                },
                 enableTooltip: true,
               ),
             ],
