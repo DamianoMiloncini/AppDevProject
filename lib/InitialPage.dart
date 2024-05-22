@@ -188,11 +188,40 @@ class _InitialPageState extends State<InitialPage> {
             //TODO: You can change to your liking honestly
             UserAccountsDrawerHeader(
               decoration: BoxDecoration(
-                  color: Colors.blue
+                image: DecorationImage(
+                  opacity: 0.4,
+                  image: AssetImage(
+                    'assets/profile_pictures/${userProvider.user!.pfp}.jpg',
+                  ),
+                  fit: BoxFit.cover, // or BoxFit.fitWidth, or any other BoxFit value as per your requirement
+                ),
               ),
               //for now, this is HardCoded but fetch from database later on !!
-              accountName: Text(userProvider.user!.username),
-              accountEmail: Text(userProvider.user!.email),
+              accountName: Text(
+                  userProvider.user!.username,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(1.0, 1.0), // Shadow offset
+                      blurRadius: 3.0, // Shadow blur radius
+                      color: Colors.black.withOpacity(1), // Shadow color
+                    ),
+                  ],
+                ),
+              ),
+              accountEmail: Text(
+                  userProvider.user!.email,
+                style: TextStyle(
+                  shadows: [
+                    Shadow(
+                      offset: Offset(1.0, 1.0), // Shadow offset
+                      blurRadius: 3.0, // Shadow blur radius
+                      color: Colors.black.withOpacity(1), // Shadow color
+                    ),
+                  ],
+                ),
+              ),
               currentAccountPicture:
               Container(
                 width: 50,
@@ -200,6 +229,14 @@ class _InitialPageState extends State<InitialPage> {
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3), // Shadow color
+                      spreadRadius: 2, // Spread radius
+                      blurRadius: 5, // Blur radius
+                      offset: Offset(0, 2), // Shadow offset
+                    ),
+                  ],
                 ),
                 child: Image.asset(
                   'assets/profile_pictures/${userProvider.user!.pfp}.jpg',

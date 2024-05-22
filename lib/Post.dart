@@ -56,6 +56,7 @@ class _PostState extends State<Post> {
       'description': _description.text,
       'timestamp': date,
       'exercises': selectedExercises,
+      'likes' : 0,
     })
         .then((value) => print('posts added to firebase'))
         .catchError((error) => print('failed to add the posts to firebase $error')

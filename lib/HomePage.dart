@@ -93,6 +93,37 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  late bool isLiked = false;
+
+  Future<void> toggleLike(String postId) async {
+    DocumentReference postRef = FirebaseFirestore.instance.collection('posts').doc(postId);
+
+    // Use a transaction to ensure the like count is updated atomically
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      DocumentSnapshot snapshot = await transaction.get(postRef);
+
+      if (!snapshot.exists) {
+        throw Exception("Post does not exist!");
+      }
+
+      int currentLikes = snapshot['likes'];
+
+      if (isLiked) {
+        // If the post is already liked, decrement the like count
+        transaction.update(postRef, {'likes': currentLikes - 1});
+        setState(() {
+          isLiked = false;
+        });
+      } else {
+        // If the post is not liked, increment the like count
+        transaction.update(postRef, {'likes': currentLikes + 1});
+        setState(() {
+          isLiked = true;
+        });
+      }
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -172,9 +203,9 @@ class _HomePageState extends State<HomePage> {
                               child: Container(
                                 padding: EdgeInsets.all(10),
                                 width: 300,
-                                height: 150,
+                                height: 175,
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       children: [
@@ -200,6 +231,9 @@ class _HomePageState extends State<HomePage> {
                                     Expanded(
                                       child: Text(
                                         data['description'],
+                                        style: TextStyle(
+                                          fontSize: 16
+                                        ),
                                       ),
                                     ),
                                     Divider(
@@ -217,11 +251,17 @@ class _HomePageState extends State<HomePage> {
                                             child: Icon(Icons.message),
                                           ),
                                           TextButton(
-                                            onPressed: () {
-                                              NotificationService().showNotification(1, 'Test Title', 'Test Body');
-
+                                            onPressed: () async {
+                                              await toggleLike(data['id']);
                                             },
-                                            child: Icon(Icons.favorite_border),
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Icon(isLiked ? Icons.favorite : Icons.favorite_border),
+                                                SizedBox(width: 5,),
+                                                Text(data['likes'].toString(), style: TextStyle(fontSize: 16),),
+                                              ],
+                                            )
                                           ),
                                           TextButton(
                                             onPressed: () {},
@@ -247,6 +287,8 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+
 
   Widget _DetailsPost(Map<String, dynamic> data) {
     Timestamp timestamp = data['timestamp'];
@@ -379,8 +421,10 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
 }
+
+
+
 
 
 
