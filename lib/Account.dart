@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'Comments.dart';
+import 'NutritionTracker.dart';
 import 'WeightPage.dart';
 import 'BMIPage.dart';
 import 'Session.dart';
@@ -22,8 +23,6 @@ class _AccountState extends State<Account> {
   double _height = 0;
   double weight = 0;
   int age = 0;
-  bool _isWomanChecked = false;
-  bool _isManChecked = false;
   String chart = '';
 
   double BMICalculation() {
@@ -219,6 +218,7 @@ class _AccountState extends State<Account> {
                 crossAxisCount: 2,
                 children: [
                   Container(
+
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -269,7 +269,8 @@ class _AccountState extends State<Account> {
                       children: [
                         Text('BMI'),
                         Text('$BMI'),
-                        SizedBox(height: 45),
+                        Text(getText()),
+                        SizedBox(height: 26),
                         Divider(
                           thickness: 1,
                           color: Colors.grey,
@@ -292,9 +293,45 @@ class _AccountState extends State<Account> {
                       ],
                     ),
                   ),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.white10,
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Nutrition Tracker'),
+                        SizedBox(height: 45),
+                        Divider(
+                          thickness: 1,
+                          color: Colors.grey,
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => NutritionTracker()));
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('View now'),
+                              Icon(Icons.arrow_forward_ios)
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
+
             Text('My Posts'),
             Container(
               //height: 400, // Adjust the height as needed

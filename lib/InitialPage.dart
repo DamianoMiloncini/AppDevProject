@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'NutritionProvider.dart';
 import 'firebase_options.dart';
 import 'HomePage.dart';
 import 'Post.dart';
@@ -28,6 +29,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => NutritionProvider()),
       ],
       child: MyApp(),
     ),

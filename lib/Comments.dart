@@ -31,6 +31,15 @@ class _CommentsState extends State<Comments> {
     }).then((value) => print('comment added to firebase')).catchError((error) =>
         print('Failed to add the comment to firebase $error'));
   }
+  //delete comment
+  Future<void> deleteComment(String commentId) async {
+    try {
+      await _commentsCollection.doc(commentId).delete();
+      print('Comment deleted from Firebase');
+    } catch (error) {
+      print('Failed to delete the comment: $error');
+    }
+  }
 
   //display comments
   Future <ListView> displayComments() async {
@@ -144,6 +153,7 @@ class _CommentsState extends State<Comments> {
                   children: matchingDocs.map((DocumentSnapshot document) {
                     Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
                     String uid = data['uid'];
+                    String commentId = document.id;
 
                     //Fetch the username for each post
                     _fetchUsername(uid);
@@ -181,7 +191,14 @@ class _CommentsState extends State<Comments> {
                                           Text(data['comment']),
                                       ],
                                     ),
-
+                              Spacer(),
+                              if (uid == userProvider.user!.uid) // Only show delete button for the user's own comments
+                                IconButton(
+                                  icon: Icon(Icons.delete),
+                                  onPressed: () {
+                                    deleteComment(commentId);
+                                  },
+                                ),
                             ],
                           ),
 
